@@ -7,11 +7,11 @@
   "frame": {
     "version": "1",
     "name": "RunCaster",
-    "iconUrl": "https://runcaster.vercel.app/icon.png",
-    "homeUrl": "https://runcaster.vercel.app",
-    "imageUrl": "https://runcaster.vercel.app/image.png",
+    "iconUrl": "https://runcaster-cursor.vercel.app/icon.png",
+    "homeUrl": "https://runcaster-cursor.vercel.app",
+    "imageUrl": "https://runcaster-cursor.vercel.app/image.png",
     "buttonTitle": "Track Your Run",
-    "splashImageUrl": "https://runcaster.vercel.app/splash.png",
+    "splashImageUrl": "https://runcaster-cursor.vercel.app/splash.png",
     "splashBackgroundColor": "#4A90E2"
   }
 }

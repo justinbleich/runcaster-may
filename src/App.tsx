@@ -106,6 +106,9 @@ function ConnectMenu() {
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const mutedColor = useColorModeValue("gray.500", "gray.400");
 
+  // Check if we're in a Farcaster environment
+  const isFarcasterEnv = window.location.hostname === 'localhost' ? false : true;
+
   if (isConnected) {
     return (
       <Flex align="center" justify="space-between" p={4} bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor}>
@@ -113,6 +116,16 @@ function ConnectMenu() {
           <Text fontSize="sm" fontWeight="medium">Connected:</Text>
           <Text fontSize="sm" color={mutedColor}>{address}</Text>
         </Stack>
+      </Flex>
+    );
+  }
+
+  if (!isFarcasterEnv) {
+    return (
+      <Flex align="center" justify="center" p={4} bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor}>
+        <Text fontSize="sm" color={mutedColor}>
+          Open in Farcaster Mini App Debug Tool to test wallet connection
+        </Text>
       </Flex>
     );
   }
