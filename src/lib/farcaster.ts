@@ -1,26 +1,30 @@
 import { useQuery } from "@tanstack/react-query";
 
-export async function fetchFarcasterProfile(address: string, apiKey: string) {
-  const res = await fetch(
-    `https://api.neynar.com/v2/farcaster/user-by-address?address=${address}`,
-    {
-      headers: { 'api_key': apiKey }
-    }
-  );
-  if (!res.ok) throw new Error('Failed to fetch Farcaster profile');
+const HUBBLE_API = "https://hoyt.farcaster.xyz:2281";
+
+export async function fetchFarcasterProfile(address: string) {
+  if (!address) return null;
+  // Hubble API: /v1/userDataByAddress?address=0x...
+  const res = await fetch(`${HUBBLE_API}/v1/userDataByAddress?address=${address}`);
+  if (!res.ok) return null;
   const data = await res.json();
+  if (!data.result || !data.result.user) return null;
+  const user = data.result.user;
   return {
-    fid: data.result.user.fid,
-    name: data.result.user.display_name || data.result.user.username,
-    avatarUrl: data.result.user.pfp_url
+    fid: user.fid,
+    username: user.username,
+    displayName: user.displayName,
+    avatarUrl: user.pfp,
+    bio: user.bio,
+    location: user.location?.description,
   };
 }
 
-export function useFarcasterProfile(address: string, apiKey: string) {
+export function useFarcasterProfile(address: string) {
   return useQuery({
     queryKey: ["farcaster-profile", address],
-    queryFn: () => fetchFarcasterProfile(address, apiKey),
-    enabled: !!address && !!apiKey,
+    queryFn: () => fetchFarcasterProfile(address),
+    enabled: !!address,
     staleTime: 1000 * 60 * 10, // 10 minutes
   });
 } 
