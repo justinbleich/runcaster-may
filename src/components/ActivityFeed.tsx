@@ -33,7 +33,7 @@ function useLikeState(_activityId: string) {
 
 function ActivityFeedItem({ activity, address, NEYNAR_API_KEY, cardBg, borderColor, mutedColor }: any) {
   const { liked, count, toggle } = useLikeState(activity.id);
-  const { data: userProfile } = useFarcasterProfile(activity.user_address, NEYNAR_API_KEY);
+  const { data: userProfile } = useFarcasterProfile(activity.user_address);
 
   const handleTip = async (_activityId: string) => {
     // TODO: Implement tipping functionality with USDC
@@ -42,7 +42,7 @@ function ActivityFeedItem({ activity, address, NEYNAR_API_KEY, cardBg, borderCol
 
   return (
     <Box key={activity.id} bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor}>
-      <ActivityCard activity={activity} user={userProfile} />
+      <ActivityCard activity={activity} user={userProfile ? { avatarUrl: userProfile.avatarUrl, name: userProfile.displayName || userProfile.username } : undefined} />
       <Flex justify="space-between" align="center" mt={2} px={4} pb={2}>
         <HStack>
           <IconButton
