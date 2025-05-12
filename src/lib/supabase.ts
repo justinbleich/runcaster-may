@@ -11,6 +11,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export interface Activity {
   id: string;
+  fid: number;
   user_address: string;
   type: 'run' | 'bike';
   distance: number;

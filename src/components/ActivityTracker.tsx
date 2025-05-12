@@ -1,7 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { createActivity } from "../lib/supabase";
 import { useQueryClient } from "@tanstack/react-query";
+import { sdk } from "@farcaster/frame-sdk";
 import {
   Box,
   Input,
@@ -64,6 +65,7 @@ function getStaticMapUrl(route: { lat: number; lng: number }[], apiKey?: string)
 export function ActivityTracker() {
   const { address } = useAccount();
   const queryClient = useQueryClient();
+  const [fid, setFid] = useState<number | null>(null);
   const [isTracking, setIsTracking] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activity, setActivity] = useState<ActivityForm>({
@@ -88,6 +90,20 @@ export function ActivityTracker() {
   const cardBg = useColorModeValue("gray.100", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const mutedColor = useColorModeValue("gray.500", "gray.400");
+
+  useEffect(() => {
+    const getFid = async () => {
+      try {
+        const context = await sdk.context;
+        if (context.user?.fid) {
+          setFid(context.user.fid);
+        }
+      } catch (error) {
+        console.error("Error getting Farcaster context:", error);
+      }
+    };
+    getFid();
+  }, []);
 
   const handleStartTracking = () => {
     setIsTracking(true);
@@ -146,11 +162,15 @@ export function ActivityTracker() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!address) return;
+    if (!address || !fid) {
+      setErrorMsg("Missing required information");
+      return;
+    }
     try {
       setIsSubmitting(true);
       setErrorMsg(null);
       await createActivity({
+        fid,
         user_address: address,
         type: activity.type,
         distance: activity.distance,
