@@ -8,6 +8,10 @@ import polyline from '@mapbox/polyline';
 function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'square' | 'wide' = 'square') {
   if (!route || route.length === 0) return '';
   const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+  if (!MAPBOX_TOKEN) {
+    console.error('Mapbox token is missing. Please add VITE_MAPBOX_TOKEN to your environment variables.');
+    return '';
+  }
   const style = 'mapbox/streets-v11';
   const width = aspect === 'square' ? 400 : 400;
   const height = aspect === 'square' ? 400 : 225; // 16:9 is 400x225
@@ -15,7 +19,9 @@ function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'squa
   const coords = route.map(p => [p.lng, p.lat]) as [number, number][];
   const encoded = polyline.encode(coords);
   const path = `path-5+f44-0.5(${encoded})`;
-  return `https://api.mapbox.com/styles/v1/${style}/static/${path}/auto/${width}x${height}@2x?access_token=${MAPBOX_TOKEN}`;
+  const url = `https://api.mapbox.com/styles/v1/${style}/static/${path}/auto/${width}x${height}@2x?access_token=${MAPBOX_TOKEN}`;
+  console.log('Generated Mapbox URL:', url);
+  return url;
 }
 
 export interface ActivityCardProps {
