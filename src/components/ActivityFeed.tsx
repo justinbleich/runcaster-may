@@ -31,7 +31,44 @@ function useLikeState(_activityId: string) {
   return { liked, count, toggle };
 }
 
-const NEYNAR_API_KEY = import.meta.env.VITE_NEYNAR_API_KEY;
+function ActivityFeedItem({ activity, address, NEYNAR_API_KEY, cardBg, borderColor, mutedColor, accent }: any) {
+  const { liked, count, toggle } = useLikeState(activity.id);
+  const { data: userProfile } = useFarcasterProfile(activity.user_address, NEYNAR_API_KEY);
+
+  const handleTip = async (_activityId: string) => {
+    // TODO: Implement tipping functionality with USDC
+    console.log("Tipping activity:", _activityId);
+  };
+
+  return (
+    <Box key={activity.id} bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor}>
+      <ActivityCard activity={activity} user={userProfile} />
+      <Flex justify="space-between" align="center" mt={2} px={4} pb={2}>
+        <HStack>
+          <IconButton
+            aria-label={liked ? "Unlike" : "Like"}
+            icon={liked ? <FaHeart /> : <FaRegHeart />}
+            colorScheme={liked ? "orange" : "gray"}
+            variant={liked ? "solid" : "ghost"}
+            size="sm"
+            onClick={toggle}
+          />
+          <Text fontSize="sm" color={mutedColor}>{count}</Text>
+        </HStack>
+        {address && address !== activity.user_address && (
+          <Button
+            variant="outline"
+            colorScheme="orange"
+            size="sm"
+            onClick={() => handleTip(activity.id)}
+          >
+            Tip with USDC
+          </Button>
+        )}
+      </Flex>
+    </Box>
+  );
+}
 
 export function ActivityFeed() {
   const { address } = useAccount();
@@ -40,15 +77,11 @@ export function ActivityFeed() {
     queryFn: getActivities,
   });
 
-  const handleTip = async (_activityId: string) => {
-    // TODO: Implement tipping functionality with USDC
-    console.log("Tipping activity:", _activityId);
-  };
-
   const cardBg = useColorModeValue("gray.100", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const mutedColor = useColorModeValue("gray.500", "gray.400");
   const accent = "orange.500";
+  const NEYNAR_API_KEY = import.meta.env.VITE_NEYNAR_API_KEY;
 
   return (
     <Stack spacing={6}>
@@ -84,42 +117,18 @@ export function ActivityFeed() {
         </Box>
       ) : (
         <Stack spacing={4}>
-          {activities.map((activity) => {
-            const { liked, count, toggle } = useLikeState(activity.id);
-            // Fetch Farcaster profile for the user
-            const { data: userProfile } = useFarcasterProfile(activity.user_address, NEYNAR_API_KEY);
-            return (
-              <Box key={activity.id} bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor}>
-                <ActivityCard
-                  activity={activity}
-                  user={userProfile}
-                />
-                <Flex justify="space-between" align="center" mt={2} px={4} pb={2}>
-                  <HStack>
-                    <IconButton
-                      aria-label={liked ? "Unlike" : "Like"}
-                      icon={liked ? <FaHeart /> : <FaRegHeart />}
-                      colorScheme={liked ? "orange" : "gray"}
-                      variant={liked ? "solid" : "ghost"}
-                      size="sm"
-                      onClick={toggle}
-                    />
-                    <Text fontSize="sm" color={mutedColor}>{count}</Text>
-                  </HStack>
-                  {address && address !== activity.user_address && (
-                    <Button
-                      variant="outline"
-                      colorScheme="orange"
-                      size="sm"
-                      onClick={() => handleTip(activity.id)}
-                    >
-                      Tip with USDC
-                    </Button>
-                  )}
-                </Flex>
-              </Box>
-            );
-          })}
+          {activities.map((activity) => (
+            <ActivityFeedItem
+              key={activity.id}
+              activity={activity}
+              address={address}
+              NEYNAR_API_KEY={NEYNAR_API_KEY}
+              cardBg={cardBg}
+              borderColor={borderColor}
+              mutedColor={mutedColor}
+              accent={accent}
+            />
+          ))}
         </Stack>
       )}
     </Stack>
