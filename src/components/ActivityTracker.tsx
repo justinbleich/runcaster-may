@@ -199,6 +199,7 @@ export function ActivityTracker() {
       setShowSummary(false);
       // Invalidate queries to refetch activities
       queryClient.invalidateQueries({ queryKey: ["activities"] });
+      queryClient.invalidateQueries({ queryKey: ["user-activities"] });
     } catch (error: any) {
       setErrorMsg(error.message || "Failed to save activity");
       console.error("Error creating activity:", error);

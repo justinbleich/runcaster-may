@@ -39,6 +39,7 @@ export function Profile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["activities"] });
       toast({ title: "Visibility updated", status: "success" });
     },
     onError: (error) => {
@@ -58,6 +59,7 @@ export function Profile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["activities"] });
       toast({ title: "Activity deleted", status: "success" });
     },
     onError: (error) => {
@@ -92,8 +94,8 @@ export function Profile() {
     <Stack spacing={4}>
       {/* User Info */}
       <Box bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor} p={8} textAlign="center">
-        <Avatar size="2xl" src={userProfile?.avatarUrl} name={userProfile?.displayName || userProfile?.username || address} mb={3} />
-        <Text fontWeight="bold" fontSize="2xl">{userProfile?.displayName || userProfile?.username || address.slice(0, 6) + "..." + address.slice(-4)}</Text>
+        <Avatar size="2xl" src={userProfile?.avatarUrl} name={userProfile?.displayName || userProfile?.username || userProfile?.name || address} mb={3} />
+        <Text fontWeight="bold" fontSize="2xl">{userProfile?.displayName || userProfile?.username || userProfile?.name || address.slice(0, 6) + "..." + address.slice(-4)}</Text>
         {userProfile?.username && (
           <Text fontSize="md" color={mutedColor}>@{userProfile?.username}</Text>
         )}
@@ -165,16 +167,25 @@ export function Profile() {
               </Button>
               <Button colorScheme={pendingAction === "delete" ? "red" : "orange"} ml={3}
                 isLoading={isActionLoading}
+                disabled={isActionLoading}
                 onClick={() => {
                   setIsActionLoading(true);
+                  let timeout = setTimeout(() => setIsActionLoading(false), 10000);
                   if (actionId && pendingAction === "delete") {
-                    deleteMutation.mutate(actionId);
-                  }
-                  if (actionId && pendingAction === "toggle") {
+                    deleteMutation.mutate(actionId, {
+                      onSettled: () => { setIsActionLoading(false); clearTimeout(timeout); }
+                    });
+                  } else if (actionId && pendingAction === "toggle") {
                     const activity = activities.find(a => a.id === actionId);
                     if (activity) {
-                      toggleMutation.mutate({ id: actionId, is_public: !activity.is_public });
+                      toggleMutation.mutate({ id: actionId, is_public: !activity.is_public }, {
+                        onSettled: () => { setIsActionLoading(false); clearTimeout(timeout); }
+                      });
+                    } else {
+                      setIsActionLoading(false); clearTimeout(timeout);
                     }
+                  } else {
+                    setIsActionLoading(false); clearTimeout(timeout);
                   }
                 }}
               >
