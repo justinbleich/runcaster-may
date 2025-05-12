@@ -20,9 +20,12 @@ interface ActivityForm {
   type: "run" | "bike";
   distance: number;
   duration: number;
-  name: string;
+  title: string;
   description?: string;
   is_public: boolean;
+  route: { lat: number; lng: number }[];
+  start_time?: number;
+  end_time?: number;
 }
 
 function formatTime(seconds: number) {
@@ -67,8 +70,11 @@ export function ActivityTracker() {
     type: "run",
     distance: 0,
     duration: 0,
-    name: "",
+    title: "",
     is_public: false,
+    route: [],
+    start_time: undefined,
+    end_time: undefined,
   });
   const [timer, setTimer] = useState(0); // seconds
   const [liveDistance, setLiveDistance] = useState(0); // km
@@ -77,6 +83,7 @@ export function ActivityTracker() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const geoWatchId = useRef<number | null>(null);
   const [activityType, setActivityType] = useState<"run" | "bike">("run");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const cardBg = useColorModeValue("gray.100", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
@@ -88,6 +95,12 @@ export function ActivityTracker() {
     setLiveDistance(0);
     setPath([]);
     setShowSummary(false);
+    setErrorMsg(null);
+    setActivity((a) => ({
+      ...a,
+      start_time: Date.now(),
+      route: [],
+    }));
     // Start timer
     timerRef.current = setInterval(() => {
       setTimer((t) => t + 1);
@@ -126,6 +139,8 @@ export function ActivityTracker() {
       distance: parseFloat(liveDistance.toFixed(3)),
       duration: Math.round(timer / 60), // minutes
       type: activityType,
+      route: _path,
+      end_time: Date.now(),
     }));
   };
 
@@ -134,22 +149,29 @@ export function ActivityTracker() {
     if (!address) return;
     try {
       setIsSubmitting(true);
+      setErrorMsg(null);
       await createActivity({
         user_address: address,
         type: activity.type,
         distance: activity.distance,
         duration: activity.duration,
-        name: activity.name,
+        title: activity.title,
         description: activity.description,
         is_public: activity.is_public,
+        route: activity.route,
+        start_time: activity.start_time,
+        end_time: activity.end_time,
       });
       // Reset form
       setActivity({
         type: "run",
         distance: 0,
         duration: 0,
-        name: "",
+        title: "",
         is_public: false,
+        route: [],
+        start_time: undefined,
+        end_time: undefined,
       });
       setTimer(0);
       setLiveDistance(0);
@@ -157,7 +179,8 @@ export function ActivityTracker() {
       setShowSummary(false);
       // Invalidate queries to refetch activities
       queryClient.invalidateQueries({ queryKey: ["activities"] });
-    } catch (error) {
+    } catch (error: any) {
+      setErrorMsg(error.message || "Failed to save activity");
       console.error("Error creating activity:", error);
     } finally {
       setIsSubmitting(false);
@@ -234,8 +257,8 @@ export function ActivityTracker() {
                   <FormLabel fontSize="sm">Activity Name</FormLabel>
                   <Input
                     placeholder="e.g. Climbing to Cloud Nine"
-                    value={activity.name}
-                    onChange={(e) => setActivity({ ...activity, name: e.target.value })}
+                    value={activity.title}
+                    onChange={(e) => setActivity({ ...activity, title: e.target.value })}
                   />
                 </FormControl>
                 <FormControl>
@@ -253,6 +276,9 @@ export function ActivityTracker() {
                     onChange={(e) => setActivity({ ...activity, is_public: e.target.checked })}
                   />
                 </FormControl>
+                {errorMsg && (
+                  <Text color="red.500" fontSize="sm">{errorMsg}</Text>
+                )}
                 <Button
                   colorScheme="orange"
                   type="submit"

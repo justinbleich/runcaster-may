@@ -16,9 +16,12 @@ export interface Activity {
   distance: number;
   duration: number;
   created_at: string;
-  name?: string;
+  title?: string;
   description?: string;
   is_public: boolean;
+  route: { lat: number; lng: number }[];
+  start_time?: number;
+  end_time?: number;
 }
 
 export async function createActivity(activity: Omit<Activity, 'id' | 'created_at'>) {
