@@ -38,38 +38,21 @@ function ActivityFeedItem({ activity, address, cardBg, borderColor, mutedColor }
     },
   });
 
-  const handleTip = async (_activityId: string) => {
-    // TODO: Implement tipping functionality with USDC
-    console.log("Tipping activity:", _activityId);
-  };
-
   return (
     <Box key={activity.id} bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor}>
-      <ActivityCard activity={activity} user={userProfile ? { avatarUrl: userProfile.avatarUrl, name: userProfile.displayName || userProfile.username } : undefined} aspect="square" showMap={activity.show_map !== false} />
-      <Flex justify="space-between" align="center" mt={2} px={4} pb={2}>
-        <HStack>
-          <IconButton
-            aria-label={liked ? "Unlike" : "Like"}
-            icon={liked ? <FaHeart /> : <FaRegHeart />}
-            colorScheme={liked ? "orange" : "gray"}
-            variant={liked ? "solid" : "ghost"}
-            size="sm"
-            onClick={() => likeMutation.mutate()}
-            isDisabled={!address || likeMutation.status === "pending"}
-          />
-          <Text fontSize="sm" color={mutedColor}>{likeCount}</Text>
-          {address && address !== activity.user_address && (
-            <Button
-              variant="outline"
-              colorScheme="orange"
-              size="sm"
-              onClick={() => handleTip(activity.id)}
-            >
-              Tip with USDC
-            </Button>
-          )}
-        </HStack>
-      </Flex>
+      <ActivityCard 
+        activity={activity} 
+        user={userProfile ? { avatarUrl: userProfile.avatarUrl, name: userProfile.displayName || userProfile.username } : undefined} 
+        aspect="square" 
+        showMap={activity.show_map !== false}
+        showTipping={address && address !== activity.user_address}
+        likeButtonProps={{
+          liked,
+          likeCount,
+          onLike: () => likeMutation.mutate(),
+          isDisabled: !address || likeMutation.status === "pending",
+        }}
+      />
     </Box>
   );
 }

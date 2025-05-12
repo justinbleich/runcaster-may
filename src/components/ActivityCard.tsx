@@ -74,6 +74,12 @@ export interface ActivityCardProps {
   showTipping?: boolean;
   aspect?: 'square' | 'wide';
   showMap?: boolean;
+  likeButtonProps?: {
+    liked: boolean;
+    likeCount: number;
+    onLike: () => void;
+    isDisabled: boolean;
+  };
 }
 
 function formatTime(seconds: number) {
@@ -83,7 +89,7 @@ function formatTime(seconds: number) {
   return [h, m, s].map((v) => v.toString().padStart(2, "0")).join(":");
 }
 
-export function ActivityCard({ activity, user, showTipping = true, aspect = 'square', showMap = true }: ActivityCardProps) {
+export function ActivityCard({ activity, user, showTipping = true, aspect = 'square', showMap = true, likeButtonProps }: ActivityCardProps) {
   const [showTipModal, setShowTipModal] = useState(false);
   const cardBg = useColorModeValue("gray.100", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
@@ -141,19 +147,36 @@ export function ActivityCard({ activity, user, showTipping = true, aspect = 'squ
           </Text>
         )}
         <Flex justify="flex-end" mt={2}>
-          {showTipping !== false && (
-            <Button
-              size="sm"
-              variant="outline"
-              colorScheme="orange"
-              onClick={() => setShowTipModal(true)}
-            >
-              Tip
-            </Button>
-          )}
+          <Stack direction="row" align="center" spacing={2}>
+            {likeButtonProps && (
+              <>
+                <Button
+                  aria-label={likeButtonProps.liked ? "Unlike" : "Like"}
+                  leftIcon={likeButtonProps.liked ? <span role="img" aria-label="liked">❤️</span> : <span role="img" aria-label="like">🤍</span>}
+                  colorScheme={likeButtonProps.liked ? "orange" : "gray"}
+                  variant={likeButtonProps.liked ? "solid" : "outline"}
+                  size="sm"
+                  onClick={likeButtonProps.onLike}
+                  isDisabled={likeButtonProps.isDisabled}
+                >
+                  {likeButtonProps.likeCount}
+                </Button>
+              </>
+            )}
+            {showTipping && (
+              <Button
+                size="sm"
+                variant="outline"
+                colorScheme="orange"
+                onClick={() => setShowTipModal(true)}
+              >
+                Tip
+              </Button>
+            )}
+          </Stack>
         </Flex>
       </Box>
-      {showTipping !== false && (
+      {showTipping && (
         <TippingModal
           isOpen={showTipModal}
           onClose={() => setShowTipModal(false)}

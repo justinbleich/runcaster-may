@@ -51,7 +51,7 @@ function App() {
           <ConnectMenu />
           {address && (
             <Text fontSize="sm" color="gray.400" textAlign="center" mb={2}>
-              {truncateAddress(address)}
+              {truncateAddress(address || "")}
             </Text>
           )}
           <Tabs
@@ -121,7 +121,7 @@ function ConnectMenu() {
       <Flex align="center" justify="space-between" p={4} bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor}>
         <Stack direction="row" align="center" spacing={2}>
           <Text fontSize="sm" fontWeight="medium">Connected:</Text>
-          <Text fontSize="sm" color={mutedColor}>{address}</Text>
+          <Text fontSize="sm" color={mutedColor}>{truncateAddress(address || "")}</Text>
         </Stack>
       </Flex>
     );
