@@ -15,6 +15,12 @@ import {
   useColorModeValue,
   Flex,
   Switch,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter,
 } from "@chakra-ui/react";
 
 interface ActivityForm {
@@ -28,6 +34,7 @@ interface ActivityForm {
   start_time?: number;
   end_time?: number;
   show_map?: boolean;
+  hide_start_end?: boolean;
 }
 
 function formatTime(seconds: number) {
@@ -78,6 +85,7 @@ export function ActivityTracker() {
     route: [],
     start_time: undefined,
     end_time: undefined,
+    hide_start_end: false,
   });
   const [timer, setTimer] = useState(0); // seconds
   const [liveDistance, setLiveDistance] = useState(0); // km
@@ -87,6 +95,8 @@ export function ActivityTracker() {
   const geoWatchId = useRef<number | null>(null);
   const [activityType, setActivityType] = useState<"run" | "bike">("run");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const cancelRef = useRef<HTMLButtonElement>(null);
 
   const cardBg = useColorModeValue("gray.100", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
@@ -183,6 +193,7 @@ export function ActivityTracker() {
         start_time: activity.start_time,
         end_time: activity.end_time,
         show_map: activity.show_map !== false,
+        hide_start_end: activity.hide_start_end === true,
       });
       // Reset form
       setActivity({
@@ -194,6 +205,7 @@ export function ActivityTracker() {
         route: [],
         start_time: undefined,
         end_time: undefined,
+        hide_start_end: false,
       });
       setTimer(0);
       setLiveDistance(0);
@@ -208,6 +220,29 @@ export function ActivityTracker() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleCancel = () => {
+    setShowCancelModal(true);
+  };
+
+  const confirmCancel = () => {
+    setShowSummary(false);
+    setActivity({
+      type: "run",
+      distance: 0,
+      duration: 0,
+      title: "",
+      is_public: false,
+      route: [],
+      start_time: undefined,
+      end_time: undefined,
+      hide_start_end: false,
+    });
+    setTimer(0);
+    setLiveDistance(0);
+    setPath([]);
+    setShowCancelModal(false);
   };
 
   if (!address) {
@@ -299,22 +334,63 @@ export function ActivityTracker() {
                     onChange={(e) => setActivity({ ...activity, is_public: e.target.checked })}
                   />
                 </FormControl>
+                <FormControl display="flex" alignItems="center">
+                  <FormLabel fontSize="sm" mb={0}>Hide Start/End Points?</FormLabel>
+                  <Switch
+                    isChecked={activity.hide_start_end}
+                    onChange={(e) => setActivity({ ...activity, hide_start_end: e.target.checked })}
+                  />
+                </FormControl>
                 {errorMsg && (
                   <Text color="red.500" fontSize="sm">{errorMsg}</Text>
                 )}
-                <Button
-                  colorScheme="orange"
-                  type="submit"
-                  isLoading={isSubmitting}
-                  w="full"
-                >
-                  Save Activity
-                </Button>
+                <Flex gap={2}>
+                  <Button
+                    colorScheme="orange"
+                    type="submit"
+                    isLoading={isSubmitting}
+                    w="full"
+                  >
+                    Save Activity
+                  </Button>
+                  <Button
+                    colorScheme="red"
+                    variant="outline"
+                    onClick={handleCancel}
+                    w="full"
+                  >
+                    Cancel
+                  </Button>
+                </Flex>
               </Stack>
             </form>
           ) : null}
         </Box>
       </Box>
+      {/* Cancel Warning Modal */}
+      <AlertDialog
+        isOpen={showCancelModal}
+        leastDestructiveRef={cancelRef}
+        onClose={() => setShowCancelModal(false)}
+      >
+        <AlertDialogOverlay />
+        <AlertDialogContent>
+          <AlertDialogHeader fontSize="lg" fontWeight="bold">
+            Discard Activity?
+          </AlertDialogHeader>
+          <AlertDialogBody>
+            Are you sure you want to discard this activity? All unsaved data will be lost.
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <Button ref={cancelRef} onClick={() => setShowCancelModal(false)}>
+              Cancel
+            </Button>
+            <Button colorScheme="red" onClick={confirmCancel} ml={3}>
+              Discard
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Stack>
   );
 } 

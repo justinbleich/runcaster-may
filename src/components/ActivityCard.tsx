@@ -4,7 +4,7 @@ import { TippingModal } from "./TippingModal";
 import { truncateAddress } from '../lib/farcaster';
 
 // Helper to generate Mapbox Static Images URL from route array
-function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'square' | 'wide' = 'square') {
+function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'square' | 'wide' = 'square', hideStartEnd?: boolean) {
   if (!route || route.length === 0) {
     console.log('No route data provided for map');
     return '';
@@ -31,10 +31,13 @@ function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'squa
   // Create the path for the route
   const path = route.map(p => `${p.lng},${p.lat}`).join(';');
   
-  // Add start and end markers
-  const startMarker = `pin-s+00ff00(${route[0].lng},${route[0].lat})`;
-  const endMarker = `pin-s+ff0000(${route[route.length - 1].lng},${route[route.length - 1].lat})`;
-  
+  // Add start and end markers unless hidden
+  let markers = '';
+  if (!hideStartEnd) {
+    const startMarker = `pin-s+00ff00(${route[0].lng},${route[0].lat})`;
+    const endMarker = `pin-s+ff0000(${route[route.length - 1].lng},${route[route.length - 1].lat})`;
+    markers = `${startMarker},${endMarker},`;
+  }
   // Calculate the center point
   const centerLng = (minLng + maxLng) / 2;
   const centerLat = (minLat + maxLat) / 2;
@@ -44,7 +47,7 @@ function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'squa
   const height = aspect === 'square' ? 400 : 225; // 16:9 is 400x225
   
   // Construct the URL for the static image with markers
-  const url = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${startMarker},${endMarker},path-5+f44-0.5(${path})/${centerLng},${centerLat},12/${width}x${height}@2x?access_token=${MAPBOX_TOKEN}`;
+  const url = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${markers}path-5+f44-0.5(${path})/${centerLng},${centerLat},12/${width}x${height}@2x?access_token=${MAPBOX_TOKEN}`;
   console.log('Generated Mapbox URL:', url);
   return url;
 }
@@ -62,6 +65,7 @@ export interface ActivityCardProps {
     is_public: boolean;
     route?: { lat: number; lng: number }[];
     show_map?: boolean;
+    hide_start_end?: boolean;
   };
   user?: {
     avatarUrl?: string;
@@ -107,7 +111,7 @@ export function ActivityCard({ activity, user, showTipping = true, aspect = 'squ
           )}
         </Flex>
         {showMap && activity.route && activity.route.length > 1 && (() => {
-          const mapUrl = getMapboxStaticUrl(activity.route, aspect);
+          const mapUrl = getMapboxStaticUrl(activity.route, aspect, activity.hide_start_end);
           console.log('Mapbox URL:', mapUrl, 'Route:', activity.route);
           return (
             <Box mb={3} borderRadius="md" overflow="hidden">

@@ -24,6 +24,7 @@ export interface Activity {
   start_time?: number;
   end_time?: number;
   show_map?: boolean;
+  hide_start_end?: boolean;
 }
 
 export async function createActivity(activity: Omit<Activity, 'id' | 'created_at'>) {

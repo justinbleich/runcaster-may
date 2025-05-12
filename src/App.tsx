@@ -19,6 +19,7 @@ import {
   useColorModeValue,
   Stack,
 } from "@chakra-ui/react";
+import { truncateAddress } from "./lib/farcaster";
 
 // Create Wagmi config with the Farcaster Mini App connector
 const config = createConfig({
@@ -41,12 +42,18 @@ function App() {
   const tabBg = useColorModeValue("gray.200", "gray.700");
   const tabActiveBg = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
+  const { address } = useAccount();
 
   return (
     <WagmiConfig config={config}>
       <Box maxW="424px" mx="auto" minH="695px" bg="gray.900">
         <Box p={4}>
           <ConnectMenu />
+          {address && (
+            <Text fontSize="sm" color="gray.400" textAlign="center" mb={2}>
+              {truncateAddress(address)}
+            </Text>
+          )}
           <Tabs
             index={tabIndex}
             onChange={setTabIndex}

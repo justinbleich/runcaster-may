@@ -58,17 +58,17 @@ function ActivityFeedItem({ activity, address, cardBg, borderColor, mutedColor }
             isDisabled={!address || likeMutation.status === "pending"}
           />
           <Text fontSize="sm" color={mutedColor}>{likeCount}</Text>
+          {address && address !== activity.user_address && (
+            <Button
+              variant="outline"
+              colorScheme="orange"
+              size="sm"
+              onClick={() => handleTip(activity.id)}
+            >
+              Tip with USDC
+            </Button>
+          )}
         </HStack>
-        {address && address !== activity.user_address && (
-          <Button
-            variant="outline"
-            colorScheme="orange"
-            size="sm"
-            onClick={() => handleTip(activity.id)}
-          >
-            Tip with USDC
-          </Button>
-        )}
       </Flex>
     </Box>
   );

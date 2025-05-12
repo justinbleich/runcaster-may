@@ -67,6 +67,25 @@ export function Profile() {
     },
   });
 
+  // Toggle hide_start_end
+  const hideStartEndToggleMutation = useMutation({
+    mutationFn: async ({ id, hide_start_end }: { id: string; hide_start_end: boolean }) => {
+      const { error } = await supabase.from("activities").update({ hide_start_end }).eq("id", id);
+      if (error) {
+        console.error("Supabase hide_start_end toggle error:", error, JSON.stringify(error, null, 2));
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["activities"] });
+      toast({ title: "Start/End marker visibility updated", status: "success" });
+    },
+    onError: (error) => {
+      toast({ title: "Failed to update marker visibility", description: error && typeof error === 'object' ? JSON.stringify(error, null, 2) : String(error), status: "error" });
+    },
+  });
+
   // Delete activity
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -132,6 +151,9 @@ export function Profile() {
         {userProfile?.username && (
           <Text fontSize="md" color={mutedColor}>@{userProfile?.username}</Text>
         )}
+        {!userProfile?.displayName && !userProfile?.username && (
+          <Text fontSize="sm" color={mutedColor} mb={2}>{truncateAddress(address)}</Text>
+        )}
         <Text fontSize="sm" color={mutedColor} mb={2}>FID: {userProfile?.fid || "-"}</Text>
         {/* Weekly Summary */}
         <Box bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor} p={4} mt={4}>
@@ -176,6 +198,9 @@ export function Profile() {
                       </MenuItem>
                       <MenuItem onClick={() => mapToggleMutation.mutate({ id: activity.id, show_map: !activity.show_map })}>
                         {activity.show_map === false ? "Show Map in Feed" : "Hide Map in Feed"}
+                      </MenuItem>
+                      <MenuItem onClick={() => hideStartEndToggleMutation.mutate({ id: activity.id, hide_start_end: !activity.hide_start_end })}>
+                        {activity.hide_start_end ? "Show Start/End Markers" : "Hide Start/End Markers"}
                       </MenuItem>
                       <MenuItem color="red.500" onClick={() => { setActionId(activity.id); setPendingAction("delete"); setShowActionModal(true); }}>
                         Delete
