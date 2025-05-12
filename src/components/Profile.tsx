@@ -13,59 +13,36 @@ import { sdk } from "@farcaster/frame-sdk";
 
 export function Profile() {
   const { address } = useAccount();
-  const [sdkUser, setSdkUser] = useState<any>(null);
   const cardBg = useColorModeValue("gray.100", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const mutedColor = useColorModeValue("gray.500", "gray.400");
   const toast = useToast();
   const queryClient = useQueryClient();
 
-  // Get user data from SDK context first
+  // Only use SDK user data for the profile
+  const [typedUserProfile, setTypedUserProfile] = useState<FarcasterProfile | null>(null);
   useEffect(() => {
     const getSdkUser = async () => {
       try {
         const context = await sdk.context;
         if (context.user) {
-          console.log('Got user from SDK context:', context.user);
-          setSdkUser(context.user);
+          setTypedUserProfile({
+            fid: context.user.fid,
+            username: context.user.username,
+            displayName: context.user.displayName,
+            avatarUrl: (context.user as any).pfpUrl || (context.user as any).pfp,
+            location: context.user.location?.description,
+          });
+        } else {
+          setTypedUserProfile(null);
         }
       } catch (error) {
+        setTypedUserProfile(null);
         console.error("Error getting Farcaster context:", error);
       }
     };
     getSdkUser();
   }, []);
-
-  // Only fetch from Neynar if we don't have SDK user data
-  const { data: userProfile, error: userProfileError, isLoading: userProfileLoading } = useFarcasterProfile(
-    address || "", 
-    sdkUser?.fid,
-    // Skip the query if we have SDK user data
-    { enabled: !sdkUser }
-  );
-
-  // Use SDK user data if available, otherwise fall back to Neynar data
-  let typedUserProfile: FarcasterProfile | null = null;
-  if (sdkUser) {
-    typedUserProfile = {
-      fid: sdkUser.fid,
-      username: sdkUser.username,
-      displayName: sdkUser.displayName,
-      avatarUrl: sdkUser.pfp || userProfile?.avatarUrl, // fallback to Neynar avatar if SDK pfp missing
-      bio: sdkUser.bio,
-      location: sdkUser.location?.description,
-    };
-  } else if (userProfile) {
-    typedUserProfile = userProfile;
-  }
-
-  // Debugging output
-  if (typeof window !== 'undefined') {
-    console.log('Profile address:', address);
-    console.log('SDK User:', sdkUser);
-    console.log('Neynar Profile:', userProfile);
-    if (userProfileError) console.error('Farcaster profile error:', userProfileError);
-  }
 
   // User activities
   const { data: activities = [], isLoading } = useQuery({
@@ -191,10 +168,10 @@ export function Profile() {
   return (
     <Stack spacing={4}>
       {/* User Info */}
-      {userProfileLoading && (
+      {typedUserProfile === null && (
         <Text color="orange.500" textAlign="center">Loading Farcaster profile…</Text>
       )}
-      {!typedUserProfile && !userProfileLoading && (
+      {!typedUserProfile && (
         <Text color="red.500" textAlign="center">No Farcaster profile found for this address.</Text>
       )}
       {typedUserProfile && !typedUserProfile.avatarUrl && (
