@@ -32,6 +32,7 @@ export interface ActivityCardProps {
     avatarUrl?: string;
     name?: string;
   };
+  showTipping?: boolean;
 }
 
 function formatTime(seconds: number) {
@@ -41,7 +42,7 @@ function formatTime(seconds: number) {
   return [h, m, s].map((v) => v.toString().padStart(2, "0")).join(":");
 }
 
-export function ActivityCard({ activity, user }: ActivityCardProps) {
+export function ActivityCard({ activity, user, showTipping = true }: ActivityCardProps) {
   const [showTipModal, setShowTipModal] = useState(false);
   const cardBg = useColorModeValue("gray.100", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
@@ -90,22 +91,26 @@ export function ActivityCard({ activity, user }: ActivityCardProps) {
           </Text>
         )}
         <Flex justify="flex-end" mt={2}>
-          <Button
-            size="sm"
-            variant="outline"
-            colorScheme="orange"
-            onClick={() => setShowTipModal(true)}
-          >
-            Tip
-          </Button>
+          {showTipping !== false && (
+            <Button
+              size="sm"
+              variant="outline"
+              colorScheme="orange"
+              onClick={() => setShowTipModal(true)}
+            >
+              Tip
+            </Button>
+          )}
         </Flex>
       </Box>
-      <TippingModal
-        isOpen={showTipModal}
-        onClose={() => setShowTipModal(false)}
-        recipientAddress={activity.user_address}
-        activityTitle={activity.title}
-      />
+      {showTipping !== false && (
+        <TippingModal
+          isOpen={showTipModal}
+          onClose={() => setShowTipModal(false)}
+          recipientAddress={activity.user_address}
+          activityTitle={activity.title}
+        />
+      )}
     </>
   );
 } 

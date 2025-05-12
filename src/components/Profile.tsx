@@ -33,7 +33,7 @@ export function Profile() {
       console.log("Toggling visibility for activity:", id, "to", is_public);
       const { error } = await supabase.from("activities").update({ is_public }).eq("id", id);
       if (error) {
-        console.error("Supabase toggle error:", error);
+        console.error("Supabase toggle error:", error, JSON.stringify(error, null, 2));
         throw error;
       }
     },
@@ -43,7 +43,7 @@ export function Profile() {
       toast({ title: "Visibility updated", status: "success" });
     },
     onError: (error) => {
-      toast({ title: "Failed to update visibility", description: String(error), status: "error" });
+      toast({ title: "Failed to update visibility", description: error && typeof error === 'object' ? JSON.stringify(error, null, 2) : String(error), status: "error" });
     },
   });
 
@@ -53,7 +53,7 @@ export function Profile() {
       console.log("Attempting to delete activity with id:", id);
       const { error } = await supabase.from("activities").delete().eq("id", id);
       if (error) {
-        console.error("Supabase delete error:", error);
+        console.error("Supabase delete error:", error, JSON.stringify(error, null, 2));
         throw error;
       }
     },
@@ -63,7 +63,7 @@ export function Profile() {
       toast({ title: "Activity deleted", status: "success" });
     },
     onError: (error) => {
-      toast({ title: "Failed to delete activity", description: String(error), status: "error" });
+      toast({ title: "Failed to delete activity", description: error && typeof error === 'object' ? JSON.stringify(error, null, 2) : String(error), status: "error" });
     },
   });
 
@@ -126,7 +126,7 @@ export function Profile() {
           <Stack spacing={4}>
             {activities.map((activity) => (
               <Box key={activity.id} position="relative">
-                <ActivityCard activity={activity} user={userProfile ? { avatarUrl: userProfile.avatarUrl, name: userProfile.displayName || userProfile.username } : undefined} />
+                <ActivityCard activity={activity} user={userProfile ? { avatarUrl: userProfile.avatarUrl, name: userProfile.displayName || userProfile.username } : undefined} showTipping={false} />
                 <Flex gap={2} align="center" position="absolute" top={2} right={2} zIndex={1}>
                   <Menu>
                     <MenuButton as={IconButton} icon={<FiMoreVertical />} variant="ghost" size="sm" />
