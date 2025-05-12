@@ -2,13 +2,10 @@ import { Box, Stack, Text, useColorModeValue } from "@chakra-ui/react";
 import { useAccount } from "wagmi";
 import { getActivities, getLikeCount, hasLiked, likeActivity, unlikeActivity } from "../lib/supabase";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { ActivityCard } from "./ActivityCard";
-import { useFarcasterProfile } from "../lib/farcaster";
 
 function ActivityFeedItem({ activity, address, cardBg, borderColor }: any) {
   const queryClient = useQueryClient();
-  const { data: userProfile } = useFarcasterProfile(activity.user_address);
 
   // Real like state
   const { data: likeCount = 0 } = useQuery({
@@ -42,7 +39,6 @@ function ActivityFeedItem({ activity, address, cardBg, borderColor }: any) {
     <Box key={activity.id} bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor}>
       <ActivityCard 
         activity={activity} 
-        user={userProfile ? { avatarUrl: userProfile.avatarUrl, name: userProfile.displayName || userProfile.username } : undefined} 
         aspect="square" 
         showMap={activity.show_map !== false}
         showTipping={address && address !== activity.user_address}
