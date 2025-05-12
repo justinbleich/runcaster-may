@@ -1,5 +1,5 @@
 import {
-  Box, Stack, Flex, Text, Heading, Avatar, SimpleGrid, useColorModeValue, Button, useToast, AlertDialog, AlertDialogBody, AlertDialogFooter, AlertDialogHeader, AlertDialogContent, AlertDialogOverlay, IconButton, Menu, MenuButton, MenuList, MenuItem
+  Box, Stack, Flex, Text, Heading, Avatar, useColorModeValue, Button, useToast, AlertDialog, AlertDialogBody, AlertDialogFooter, AlertDialogHeader, AlertDialogContent, AlertDialogOverlay, IconButton, Menu, MenuButton, MenuList, MenuItem
 } from "@chakra-ui/react";
 import { useAccount } from "wagmi";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -86,11 +86,6 @@ export function Profile() {
       toast({ title: "Failed to delete activity", description: error && typeof error === 'object' ? JSON.stringify(error, null, 2) : String(error), status: "error" });
     },
   });
-
-  // Stats
-  const totalDistance = activities.reduce((sum, a) => sum + a.distance, 0);
-  const totalDuration = activities.reduce((sum, a) => sum + a.duration, 0);
-  const totalActivities = activities.length;
 
   // Weekly summary (user-specific)
   const now = new Date();

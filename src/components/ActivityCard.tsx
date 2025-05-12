@@ -2,7 +2,7 @@ import { Box, Text, Flex, Badge, Avatar, Stack, useColorModeValue, Button } from
 import { useState } from "react";
 import { TippingModal } from "./TippingModal";
 import { truncateAddress } from '../lib/farcaster';
-import polyline from 'polyline';
+import polyline from '@mapbox/polyline';
 
 // Helper to generate Mapbox Static Images URL from route array
 function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'square' | 'wide' = 'square') {
@@ -15,8 +15,6 @@ function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'squa
   const coords = route.map(p => [p.lng, p.lat]);
   const encoded = polyline.encode(coords);
   const path = `path-5+f44-0.5(${encoded})`;
-  // Center on route
-  const center = coords.length > 0 ? coords[Math.floor(coords.length / 2)] : [0, 0];
   return `https://api.mapbox.com/styles/v1/${style}/static/${path}/auto/${width}x${height}@2x?access_token=${MAPBOX_TOKEN}`;
 }
 

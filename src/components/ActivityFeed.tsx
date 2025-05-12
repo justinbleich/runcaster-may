@@ -7,17 +7,6 @@ import { useState } from "react";
 import { ActivityCard } from "./ActivityCard";
 import { useFarcasterProfile } from "../lib/farcaster";
 
-// Dummy like state for demo
-function useLikeState(_activityId: string) {
-  const [liked, setLiked] = useState(false);
-  const [count, setCount] = useState(Math.floor(Math.random() * 10));
-  const toggle = () => {
-    setLiked((v) => !v);
-    setCount((c) => (liked ? c - 1 : c + 1));
-  };
-  return { liked, count, toggle };
-}
-
 function ActivityFeedItem({ activity, address, cardBg, borderColor, mutedColor }: any) {
   const queryClient = useQueryClient();
   const { data: userProfile } = useFarcasterProfile(activity.user_address);
