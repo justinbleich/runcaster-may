@@ -49,11 +49,6 @@ function App() {
       <Box maxW="424px" mx="auto" minH="695px" bg="gray.900">
         <Box p={4}>
           <ConnectMenu />
-          {address && (
-            <Text fontSize="sm" color="gray.400" textAlign="center" mb={2}>
-              {truncateAddress(address || "")}
-            </Text>
-          )}
           <Tabs
             index={tabIndex}
             onChange={setTabIndex}

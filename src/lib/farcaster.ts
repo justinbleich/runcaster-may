@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 
-const HUBBLE_API = "https://hoyt.farcaster.xyz:2281";
+// Replace HUBBLE_API with Neynar API
+// Requires NEYNAR_API_KEY in your environment
+const NEYNAR_API = "https://api.neynar.com/v2/farcaster/user-by-address";
 
 export interface FarcasterProfile {
   fid?: number;
@@ -14,18 +16,22 @@ export interface FarcasterProfile {
 export async function fetchFarcasterProfile(address: string): Promise<FarcasterProfile | null> {
   if (!address) return null;
   try {
-    const res = await fetch(`${HUBBLE_API}/v1/userDataByAddress?address=${address}`);
-    if (!res.ok) throw new Error('Hubble fetch failed');
+    const apiKey = import.meta.env.VITE_NEYNAR_API_KEY;
+    if (!apiKey) throw new Error('Missing NEYNAR_API_KEY');
+    const res = await fetch(`${NEYNAR_API}?address=${address}`, {
+      headers: { 'api_key': apiKey }
+    });
+    if (!res.ok) throw new Error('Neynar fetch failed');
     const data = await res.json();
-    if (!data.result || !data.result.user) throw new Error('No user found');
-    const user = data.result.user;
+    const user = data.result?.user;
+    if (!user) throw new Error('No user found');
     return {
       fid: user.fid,
       username: user.username,
-      displayName: user.displayName,
-      avatarUrl: user.pfp,
-      bio: user.bio,
-      location: user.location?.description,
+      displayName: user.display_name,
+      avatarUrl: user.pfp_url,
+      bio: user.profile?.bio?.text,
+      location: user.profile?.location?.description,
     };
   } catch (e) {
     console.warn('Farcaster profile fetch failed:', e);
@@ -48,8 +54,6 @@ export function truncateAddress(address: string) {
     console.warn('truncateAddress called with empty address');
     return '';
   }
-  console.log('Truncating address:', address);
   const truncated = address.slice(0, 4) + '…' + address.slice(-4);
-  console.log('Truncated result:', truncated);
   return truncated;
 } 
