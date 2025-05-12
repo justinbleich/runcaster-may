@@ -88,11 +88,11 @@ export async function fetchFarcasterProfile(address: string, fid?: number): Prom
   return null;
 }
 
-export function useFarcasterProfile(address: string, fid?: number) {
+export function useFarcasterProfile(address: string, fid?: number, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["farcaster-profile", address, fid],
     queryFn: () => fetchFarcasterProfile(address, fid),
-    enabled: !!address || !!fid,
+    enabled: (!!address || !!fid) && (options?.enabled !== false),
     staleTime: 1000 * 60 * 10, // 10 minutes
   });
 }

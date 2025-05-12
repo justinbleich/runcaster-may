@@ -6,26 +6,59 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUserActivities, supabase } from "../lib/supabase";
 import { useFarcasterProfile, truncateAddress, FarcasterProfile } from "../lib/farcaster";
 import { ActivityCard } from "./ActivityCard";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { FiMoreVertical } from "react-icons/fi";
 import { startOfWeek, endOfWeek, isWithinInterval, parseISO } from 'date-fns';
+import { sdk } from "@farcaster/frame-sdk";
 
 export function Profile() {
   const { address } = useAccount();
+  const [sdkUser, setSdkUser] = useState<any>(null);
   const cardBg = useColorModeValue("gray.100", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const mutedColor = useColorModeValue("gray.500", "gray.400");
   const toast = useToast();
   const queryClient = useQueryClient();
 
-  // Farcaster profile
-  const { data: userProfile, error: userProfileError, isLoading: userProfileLoading } = useFarcasterProfile(address || "");
-  const typedUserProfile: FarcasterProfile | null = userProfile || null;
+  // Get user data from SDK context first
+  useEffect(() => {
+    const getSdkUser = async () => {
+      try {
+        const context = await sdk.context;
+        if (context.user) {
+          console.log('Got user from SDK context:', context.user);
+          setSdkUser(context.user);
+        }
+      } catch (error) {
+        console.error("Error getting Farcaster context:", error);
+      }
+    };
+    getSdkUser();
+  }, []);
+
+  // Only fetch from Neynar if we don't have SDK user data
+  const { data: userProfile, error: userProfileError, isLoading: userProfileLoading } = useFarcasterProfile(
+    address || "", 
+    sdkUser?.fid,
+    // Skip the query if we have SDK user data
+    { enabled: !sdkUser }
+  );
+
+  // Use SDK user data if available, otherwise fall back to Neynar data
+  const typedUserProfile: FarcasterProfile | null = sdkUser ? {
+    fid: sdkUser.fid,
+    username: sdkUser.username,
+    displayName: sdkUser.displayName,
+    avatarUrl: sdkUser.pfp,
+    bio: sdkUser.bio,
+    location: sdkUser.location?.description,
+  } : userProfile || null;
 
   // Debugging output
   if (typeof window !== 'undefined') {
     console.log('Profile address:', address);
-    console.log('Fetched userProfile:', userProfile);
+    console.log('SDK User:', sdkUser);
+    console.log('Neynar Profile:', userProfile);
     if (userProfileError) console.error('Farcaster profile error:', userProfileError);
   }
 
