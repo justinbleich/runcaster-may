@@ -4,7 +4,7 @@ import {
 import { useAccount } from "wagmi";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUserActivities, supabase } from "../lib/supabase";
-import { useFarcasterProfile, truncateAddress } from "../lib/farcaster";
+import { useFarcasterProfile, truncateAddress, FarcasterProfile } from "../lib/farcaster";
 import { ActivityCard } from "./ActivityCard";
 import { useState, useRef } from "react";
 import { FiMoreVertical } from "react-icons/fi";
@@ -19,7 +19,15 @@ export function Profile() {
   const queryClient = useQueryClient();
 
   // Farcaster profile
-  const { data: userProfile } = useFarcasterProfile(address || "");
+  const { data: userProfile, error: userProfileError, isLoading: userProfileLoading } = useFarcasterProfile(address || "");
+  const typedUserProfile: FarcasterProfile | null = userProfile || null;
+
+  // Debugging output
+  if (typeof window !== 'undefined') {
+    console.log('Profile address:', address);
+    console.log('Fetched userProfile:', userProfile);
+    if (userProfileError) console.error('Farcaster profile error:', userProfileError);
+  }
 
   // User activities
   const { data: activities = [], isLoading } = useQuery({
@@ -145,15 +153,24 @@ export function Profile() {
   return (
     <Stack spacing={4}>
       {/* User Info */}
+      {userProfileLoading && (
+        <Text color="orange.500" textAlign="center">Loading Farcaster profile…</Text>
+      )}
+      {!typedUserProfile && !userProfileLoading && (
+        <Text color="red.500" textAlign="center">No Farcaster profile found for this address.</Text>
+      )}
+      {typedUserProfile && !typedUserProfile.avatarUrl && (
+        <Text color="yellow.500" textAlign="center">No avatar found for this profile.</Text>
+      )}
       <Box bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor} p={8} textAlign="center">
-        <Avatar size="2xl" src={userProfile?.avatarUrl} name={userProfile?.displayName || userProfile?.username || address} mb={3} />
+        <Avatar size="2xl" src={typedUserProfile?.avatarUrl} name={typedUserProfile?.displayName || typedUserProfile?.username || address} mb={3} />
         <Text fontWeight="bold" fontSize="2xl">
-          {userProfile?.displayName || userProfile?.username || truncateAddress(address)}
+          {typedUserProfile?.displayName || typedUserProfile?.username || truncateAddress(address)}
         </Text>
-        {userProfile?.username && (
-          <Text fontSize="md" color={mutedColor}>@{userProfile?.username}</Text>
+        {typedUserProfile?.username && (
+          <Text fontSize="md" color={mutedColor}>@{typedUserProfile?.username}</Text>
         )}
-        <Text fontSize="sm" color={mutedColor} mb={2}>FID: {userProfile?.fid || "-"}</Text>
+        <Text fontSize="sm" color={mutedColor} mb={2}>FID: {typedUserProfile?.fid || "-"}</Text>
         {/* Weekly Summary */}
         <Box bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor} p={4} mt={4}>
           <Text fontSize="xs" color={mutedColor} fontWeight="bold" mb={2}>
@@ -187,7 +204,7 @@ export function Profile() {
           <Stack spacing={4}>
             {activities.map((activity) => (
               <Box key={activity.id} position="relative">
-                <ActivityCard activity={activity} user={userProfile ? { avatarUrl: userProfile.avatarUrl, name: userProfile.displayName || userProfile.username } : undefined} showTipping={false} aspect="wide" showMap={true} />
+                <ActivityCard activity={activity} user={typedUserProfile ? { avatarUrl: typedUserProfile.avatarUrl, name: typedUserProfile.displayName || typedUserProfile.username } : undefined} showTipping={false} aspect="wide" showMap={true} />
                 <Flex gap={2} align="center" position="absolute" top={2} right={2} zIndex={1}>
                   <Menu>
                     <MenuButton as={IconButton} icon={<FiMoreVertical />} variant="ghost" size="sm" />
