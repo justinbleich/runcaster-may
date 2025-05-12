@@ -1,4 +1,4 @@
-import { Box, Flex, Stack, Text, Button, useColorModeValue, IconButton, HStack } from "@chakra-ui/react";
+import { Box, Stack, Text, useColorModeValue } from "@chakra-ui/react";
 import { useAccount } from "wagmi";
 import { getActivities, getLikeCount, hasLiked, likeActivity, unlikeActivity } from "../lib/supabase";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,7 +6,7 @@ import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { ActivityCard } from "./ActivityCard";
 import { useFarcasterProfile } from "../lib/farcaster";
 
-function ActivityFeedItem({ activity, address, cardBg, borderColor, mutedColor }: any) {
+function ActivityFeedItem({ activity, address, cardBg, borderColor }: any) {
   const queryClient = useQueryClient();
   const { data: userProfile } = useFarcasterProfile(activity.user_address);
 
@@ -66,18 +66,17 @@ export function ActivityFeed() {
 
   const cardBg = useColorModeValue("gray.100", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
-  const mutedColor = useColorModeValue("gray.500", "gray.400");
 
   return (
     <Stack spacing={6}>
       {/* Activities Feed */}
       {isLoading ? (
         <Box bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor} p={6}>
-          <Text textAlign="center" color={mutedColor}>Loading activities...</Text>
+          <Text textAlign="center" color={useColorModeValue("gray.500", "gray.400")}>Loading activities...</Text>
         </Box>
       ) : !activities?.length ? (
         <Box bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor} p={6}>
-          <Text textAlign="center" color={mutedColor}>No activities yet</Text>
+          <Text textAlign="center" color={useColorModeValue("gray.500", "gray.400")}>No activities yet</Text>
         </Box>
       ) : (
         <Stack spacing={4}>
@@ -88,7 +87,6 @@ export function ActivityFeed() {
               address={address}
               cardBg={cardBg}
               borderColor={borderColor}
-              mutedColor={mutedColor}
             />
           ))}
         </Stack>
