@@ -75,15 +75,19 @@ export function ActivityCard({ activity, user, showTipping = true, aspect = 'squ
             <Badge colorScheme="gray" ml={2} variant="outline">Private</Badge>
           )}
         </Flex>
-        {showMap && activity.route && activity.route.length > 1 && (
-          <Box mb={3} borderRadius="md" overflow="hidden">
-            <img
-              src={getMapboxStaticUrl(activity.route, aspect)}
-              alt="Route preview"
-              style={{ width: "100%", borderRadius: 8, aspectRatio: aspect === 'square' ? '1 / 1' : '16 / 9' }}
-            />
-          </Box>
-        )}
+        {showMap && activity.route && activity.route.length > 1 && (() => {
+          const mapUrl = getMapboxStaticUrl(activity.route, aspect);
+          console.log('Mapbox URL:', mapUrl, 'Route:', activity.route);
+          return (
+            <Box mb={3} borderRadius="md" overflow="hidden">
+              <img
+                src={mapUrl}
+                alt="Route preview"
+                style={{ width: "100%", borderRadius: 8, aspectRatio: aspect === 'square' ? '1 / 1' : '16 / 9' }}
+              />
+            </Box>
+          );
+        })()}
         <Flex gap={4} mb={2}>
           <Text fontSize="sm" color={typeColor} fontWeight="semibold">
             {activity.distance.toFixed(2)} km

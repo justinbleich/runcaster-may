@@ -4,7 +4,7 @@ import {
 import { useAccount } from "wagmi";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUserActivities, supabase } from "../lib/supabase";
-import { useFarcasterProfile } from "../lib/farcaster";
+import { useFarcasterProfile, truncateAddress } from "../lib/farcaster";
 import { ActivityCard } from "./ActivityCard";
 import { useState, useRef } from "react";
 import { FiMoreVertical } from "react-icons/fi";
@@ -128,7 +128,7 @@ export function Profile() {
       {/* User Info */}
       <Box bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor} p={8} textAlign="center">
         <Avatar size="2xl" src={userProfile?.avatarUrl} name={userProfile?.displayName || userProfile?.username || address} mb={3} />
-        <Text fontWeight="bold" fontSize="2xl">{userProfile?.displayName || userProfile?.username || address.slice(0, 6) + "..." + address.slice(-4)}</Text>
+        <Text fontWeight="bold" fontSize="2xl">{userProfile?.displayName || userProfile?.username || truncateAddress(address)}</Text>
         {userProfile?.username && (
           <Text fontSize="md" color={mutedColor}>@{userProfile?.username}</Text>
         )}
