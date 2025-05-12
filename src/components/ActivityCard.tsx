@@ -12,7 +12,7 @@ function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'squa
   const width = aspect === 'square' ? 400 : 400;
   const height = aspect === 'square' ? 400 : 225; // 16:9 is 400x225
   // Mapbox expects [lng, lat] pairs
-  const coords = route.map(p => [p.lng, p.lat]);
+  const coords = route.map(p => [p.lng, p.lat]) as [number, number][];
   const encoded = polyline.encode(coords);
   const path = `path-5+f44-0.5(${encoded})`;
   return `https://api.mapbox.com/styles/v1/${style}/static/${path}/auto/${width}x${height}@2x?access_token=${MAPBOX_TOKEN}`;
