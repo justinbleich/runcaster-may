@@ -1,8 +1,8 @@
-import { Box, Flex, Stack, Text, Button, Avatar, useColorModeValue, IconButton, HStack } from "@chakra-ui/react";
+import { Box, Flex, Stack, Text, Button, useColorModeValue, IconButton, HStack } from "@chakra-ui/react";
 import { useAccount } from "wagmi";
 import { getActivities } from "../lib/supabase";
 import { useQuery } from "@tanstack/react-query";
-import { FaRunning, FaBiking, FaMedal, FaMountain, FaHeart, FaRegHeart } from "react-icons/fa";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { useState } from "react";
 import { ActivityCard } from "./ActivityCard";
 import { useFarcasterProfile } from "../lib/farcaster";
@@ -43,18 +43,6 @@ export function ActivityFeed() {
   const handleTip = async (_activityId: string) => {
     // TODO: Implement tipping functionality with USDC
     console.log("Tipping activity:", _activityId);
-  };
-
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-  };
-
-  const formatDistance = (km: number) => {
-    // Convert to miles for the UI reference
-    const miles = km * 0.621371;
-    return `${miles.toFixed(2)} mi`;
   };
 
   const cardBg = useColorModeValue("gray.100", "gray.800");

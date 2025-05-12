@@ -10,7 +10,6 @@ import {
   Button,
   Stack,
   Heading,
-  Select,
   Text,
   useColorModeValue,
   Flex,
