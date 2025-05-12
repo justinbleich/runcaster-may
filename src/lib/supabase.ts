@@ -17,6 +17,8 @@ export interface Activity {
   duration: number;
   created_at: string;
   name?: string;
+  description?: string;
+  is_public: boolean;
 }
 
 export async function createActivity(activity: Omit<Activity, 'id' | 'created_at'>) {

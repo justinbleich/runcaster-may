@@ -14,6 +14,7 @@ import {
   Text,
   useColorModeValue,
   Flex,
+  Switch,
 } from "@chakra-ui/react";
 
 interface ActivityForm {
@@ -21,6 +22,8 @@ interface ActivityForm {
   distance: number;
   duration: number;
   name: string;
+  description?: string;
+  is_public: boolean;
 }
 
 function formatTime(seconds: number) {
@@ -43,6 +46,19 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c;
 }
 
+// Helper to generate Google Static Maps URL from route array
+function getStaticMapUrl(route: { lat: number; lng: number }[], apiKey?: string) {
+  if (!route || route.length === 0) return "";
+  const base = "https://maps.googleapis.com/maps/api/staticmap";
+  const size = "400x200";
+  const path =
+    "path=color:0x4285F4FF|weight:4|" +
+    route.map((p) => `${p.lat},${p.lng}`).join("|");
+  const markers = route.length > 0 ? `&markers=color:green|label:S|${route[0].lat},${route[0].lng}&markers=color:red|label:F|${route[route.length-1].lat},${route[route.length-1].lng}` : "";
+  const key = apiKey ? `&key=${apiKey}` : "";
+  return `${base}?size=${size}&${path}${markers}${key}`;
+}
+
 export function ActivityTracker() {
   const { address } = useAccount();
   const queryClient = useQueryClient();
@@ -53,6 +69,7 @@ export function ActivityTracker() {
     distance: 0,
     duration: 0,
     name: "",
+    is_public: false,
   });
   const [timer, setTimer] = useState(0); // seconds
   const [liveDistance, setLiveDistance] = useState(0); // km
@@ -60,6 +77,7 @@ export function ActivityTracker() {
   const [showSummary, setShowSummary] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const geoWatchId = useRef<number | null>(null);
+  const [activityType, setActivityType] = useState<"run" | "bike">("run");
 
   const cardBg = useColorModeValue("gray.100", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
@@ -108,6 +126,7 @@ export function ActivityTracker() {
       ...a,
       distance: parseFloat(liveDistance.toFixed(3)),
       duration: Math.round(timer / 60), // minutes
+      type: activityType,
     }));
   };
 
@@ -122,6 +141,8 @@ export function ActivityTracker() {
         distance: activity.distance,
         duration: activity.duration,
         name: activity.name,
+        description: activity.description,
+        is_public: activity.is_public,
       });
       // Reset form
       setActivity({
@@ -129,6 +150,7 @@ export function ActivityTracker() {
         distance: 0,
         duration: 0,
         name: "",
+        is_public: false,
       });
       setTimer(0);
       setLiveDistance(0);
@@ -160,10 +182,35 @@ export function ActivityTracker() {
           <Heading as="h3" size="md">Track Activity</Heading>
         </Box>
         <Box p={6}>
+          {!isTracking && !showSummary && (
+            <Stack spacing={4} align="center">
+              <Text fontWeight="medium">Activity Type</Text>
+              <Flex align="center" gap={4}>
+                <Button
+                  colorScheme={activityType === "run" ? "orange" : "gray"}
+                  variant={activityType === "run" ? "solid" : "outline"}
+                  onClick={() => setActivityType("run")}
+                >
+                  Run
+                </Button>
+                <Button
+                  colorScheme={activityType === "bike" ? "orange" : "gray"}
+                  variant={activityType === "bike" ? "solid" : "outline"}
+                  onClick={() => setActivityType("bike")}
+                >
+                  Bike
+                </Button>
+              </Flex>
+              <Button colorScheme="orange" w="full" onClick={handleStartTracking}>
+                Start Tracking
+              </Button>
+            </Stack>
+          )}
           {isTracking ? (
             <Stack spacing={4} align="center">
               <Text fontSize="2xl" fontWeight="bold">{formatTime(timer)}</Text>
               <Text color={mutedColor}>Distance: {liveDistance.toFixed(2)} km</Text>
+              <Text color={mutedColor}>Type: {activityType.charAt(0).toUpperCase() + activityType.slice(1)}</Text>
               <Button colorScheme="red" w="full" onClick={handleStopTracking}>
                 Stop Tracking
               </Button>
@@ -171,6 +218,19 @@ export function ActivityTracker() {
           ) : showSummary ? (
             <form onSubmit={handleSubmit}>
               <Stack spacing={4}>
+                <Text fontWeight="medium">Type: {activityType.charAt(0).toUpperCase() + activityType.slice(1)}</Text>
+                <Text>Duration: {formatTime(timer)}</Text>
+                <Text>Distance: {liveDistance.toFixed(2)} km</Text>
+                {/* Static map preview */}
+                {_path.length > 1 && (
+                  <Box>
+                    <img
+                      src={getStaticMapUrl(_path)}
+                      alt="Route preview"
+                      style={{ width: "100%", borderRadius: 8, marginBottom: 8 }}
+                    />
+                  </Box>
+                )}
                 <FormControl>
                   <FormLabel fontSize="sm">Activity Name</FormLabel>
                   <Input
@@ -180,108 +240,31 @@ export function ActivityTracker() {
                   />
                 </FormControl>
                 <FormControl>
-                  <FormLabel fontSize="sm">Activity Type</FormLabel>
-                  <Select
-                    value={activity.type}
-                    onChange={(e) => setActivity({ ...activity, type: e.target.value as "run" | "bike" })}
-                  >
-                    <option value="run">Run</option>
-                    <option value="bike">Bike</option>
-                  </Select>
-                </FormControl>
-                <FormControl>
-                  <FormLabel fontSize="sm">Distance (km)</FormLabel>
+                  <FormLabel fontSize="sm">Description</FormLabel>
                   <Input
-                    type="number"
-                    step="0.01"
-                    value={activity.distance}
-                    onChange={(e) => setActivity({ ...activity, distance: parseFloat(e.target.value) })}
+                    placeholder="Optional description"
+                    value={activity.description || ""}
+                    onChange={(e) => setActivity({ ...activity, description: e.target.value })}
                   />
                 </FormControl>
-                <FormControl>
-                  <FormLabel fontSize="sm">Duration (minutes)</FormLabel>
-                  <Input
-                    type="number"
-                    value={activity.duration}
-                    onChange={(e) => setActivity({ ...activity, duration: parseInt(e.target.value) })}
+                <FormControl display="flex" alignItems="center">
+                  <FormLabel fontSize="sm" mb={0}>Share Publicly?</FormLabel>
+                  <Switch
+                    isChecked={activity.is_public}
+                    onChange={(e) => setActivity({ ...activity, is_public: e.target.checked })}
                   />
                 </FormControl>
-                <Flex gap={2}>
-                  <Button type="submit" colorScheme="orange" flex={1} isLoading={isSubmitting}>
-                    Save Activity
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    colorScheme="orange"
-                    flex={1}
-                    onClick={() => {
-                      setShowSummary(false);
-                      setTimer(0);
-                      setLiveDistance(0);
-                      setPath([]);
-                    }}
-                  >
-                    Discard
-                  </Button>
-                </Flex>
+                <Button
+                  colorScheme="orange"
+                  type="submit"
+                  isLoading={isSubmitting}
+                  w="full"
+                >
+                  Save Activity
+                </Button>
               </Stack>
             </form>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              <Stack spacing={4}>
-                <FormControl>
-                  <FormLabel fontSize="sm">Activity Name</FormLabel>
-                  <Input
-                    placeholder="e.g. Climbing to Cloud Nine"
-                    value={activity.name}
-                    onChange={(e) => setActivity({ ...activity, name: e.target.value })}
-                  />
-                </FormControl>
-                <FormControl>
-                  <FormLabel fontSize="sm">Activity Type</FormLabel>
-                  <Select
-                    value={activity.type}
-                    onChange={(e) => setActivity({ ...activity, type: e.target.value as "run" | "bike" })}
-                  >
-                    <option value="run">Run</option>
-                    <option value="bike">Bike</option>
-                  </Select>
-                </FormControl>
-                <FormControl>
-                  <FormLabel fontSize="sm">Distance (km)</FormLabel>
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={activity.distance}
-                    onChange={(e) => setActivity({ ...activity, distance: parseFloat(e.target.value) })}
-                  />
-                </FormControl>
-                <FormControl>
-                  <FormLabel fontSize="sm">Duration (minutes)</FormLabel>
-                  <Input
-                    type="number"
-                    value={activity.duration}
-                    onChange={(e) => setActivity({ ...activity, duration: parseInt(e.target.value) })}
-                  />
-                </FormControl>
-                <Flex gap={2}>
-                  <Button type="submit" colorScheme="orange" flex={1} isLoading={isSubmitting}>
-                    Save Activity
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    colorScheme="orange"
-                    flex={1}
-                    onClick={handleStartTracking}
-                  >
-                    Start Tracking
-                  </Button>
-                </Flex>
-              </Stack>
-            </form>
-          )}
+          ) : null}
         </Box>
       </Box>
     </Stack>

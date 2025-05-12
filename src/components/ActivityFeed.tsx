@@ -4,6 +4,8 @@ import { getActivities } from "../lib/supabase";
 import { useQuery } from "@tanstack/react-query";
 import { FaRunning, FaBiking, FaMedal, FaMountain, FaHeart, FaRegHeart } from "react-icons/fa";
 import { useState } from "react";
+import { ActivityCard } from "./ActivityCard";
+import { useFarcasterProfile } from "../lib/farcaster";
 
 // Dummy weekly snapshot data for now
 const weeklyStats = {
@@ -28,6 +30,8 @@ function useLikeState(_activityId: string) {
   };
   return { liked, count, toggle };
 }
+
+const NEYNAR_API_KEY = import.meta.env.VITE_NEYNAR_API_KEY;
 
 export function ActivityFeed() {
   const { address } = useAccount();
@@ -93,75 +97,38 @@ export function ActivityFeed() {
       ) : (
         <Stack spacing={4}>
           {activities.map((activity) => {
-            // Demo: use custom name if present, else fallback
-            const customName = activity.name || (activity.type === "run" ? "Morning Run" : "Afternoon Ride");
             const { liked, count, toggle } = useLikeState(activity.id);
+            // Fetch Farcaster profile for the user
+            const { data: userProfile } = useFarcasterProfile(activity.user_address, NEYNAR_API_KEY);
             return (
               <Box key={activity.id} bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor}>
-                <Flex align="center" p={4} gap={3} borderBottomWidth={1} borderColor={borderColor}>
-                  {/* Avatar placeholder */}
-                  <Avatar size="md" name={activity.user_address} mr={2} />
-                  <Box flex={1}>
-                    <Text fontWeight="semibold" fontSize="sm">{activity.user_address.slice(0, 6)}...{activity.user_address.slice(-4)}</Text>
-                    <Text fontSize="xs" color={mutedColor}>{new Date(activity.created_at).toLocaleString()}</Text>
-                  </Box>
-                  <Flex align="center" gap={1} color={accent} fontSize="xl">
-                    {activity.type === "run" ? <FaRunning /> : <FaBiking />}
-                    <Text fontSize="sm" ml={1} fontWeight="bold" color={accent} textTransform="capitalize">
-                      {activity.type}
-                    </Text>
-                  </Flex>
-                </Flex>
-                <Box p={4}>
-                  <Text fontWeight="bold" fontSize="md" mb={1} textTransform="capitalize">
-                    {customName}
-                  </Text>
-                  <HStack spacing={6} mb={2}>
-                    <Stack align="center" spacing={0}>
-                      <Text fontWeight="semibold">{formatDistance(activity.distance)}</Text>
-                      <Text fontSize="xs" color={mutedColor}>Distance</Text>
-                    </Stack>
-                    <Stack align="center" spacing={0}>
-                      <Text fontWeight="semibold">{formatDuration(activity.duration)}</Text>
-                      <Text fontSize="xs" color={mutedColor}>Time</Text>
-                    </Stack>
-                    <Stack align="center" spacing={0}>
-                      <Flex align="center" gap={1} fontWeight="semibold"><FaMountain color="#ff5500" /> 0</Flex>
-                      <Text fontSize="xs" color={mutedColor}>Elevation</Text>
-                    </Stack>
-                    <Stack align="center" spacing={0}>
-                      <Flex align="center" gap={1} fontWeight="semibold"><FaMedal color="#ff5500" /> 0</Flex>
-                      <Text fontSize="xs" color={mutedColor}>Achievements</Text>
-                    </Stack>
+                <ActivityCard
+                  activity={activity}
+                  user={userProfile}
+                />
+                <Flex justify="space-between" align="center" mt={2} px={4} pb={2}>
+                  <HStack>
+                    <IconButton
+                      aria-label={liked ? "Unlike" : "Like"}
+                      icon={liked ? <FaHeart /> : <FaRegHeart />}
+                      colorScheme={liked ? "orange" : "gray"}
+                      variant={liked ? "solid" : "ghost"}
+                      size="sm"
+                      onClick={toggle}
+                    />
+                    <Text fontSize="sm" color={mutedColor}>{count}</Text>
                   </HStack>
-                  {/* Map Placeholder */}
-                  <Box w="full" h="32" bg={mutedColor} borderRadius="md" display="flex" alignItems="center" justifyContent="center" color="gray.700" fontSize="sm" mb={2}>
-                    Map Placeholder
-                  </Box>
-                  <Flex justify="space-between" align="center" mt={2}>
-                    <HStack>
-                      <IconButton
-                        aria-label={liked ? "Unlike" : "Like"}
-                        icon={liked ? <FaHeart /> : <FaRegHeart />}
-                        colorScheme={liked ? "orange" : "gray"}
-                        variant={liked ? "solid" : "ghost"}
-                        size="sm"
-                        onClick={toggle}
-                      />
-                      <Text fontSize="sm" color={mutedColor}>{count}</Text>
-                    </HStack>
-                    {address && address !== activity.user_address && (
-                      <Button
-                        variant="outline"
-                        colorScheme="orange"
-                        size="sm"
-                        onClick={() => handleTip(activity.id)}
-                      >
-                        Tip with USDC
-                      </Button>
-                    )}
-                  </Flex>
-                </Box>
+                  {address && address !== activity.user_address && (
+                    <Button
+                      variant="outline"
+                      colorScheme="orange"
+                      size="sm"
+                      onClick={() => handleTip(activity.id)}
+                    >
+                      Tip with USDC
+                    </Button>
+                  )}
+                </Flex>
               </Box>
             );
           })}
