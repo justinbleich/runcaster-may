@@ -19,7 +19,7 @@ export async function fetchFarcasterProfile(address: string): Promise<FarcasterP
     const apiKey = import.meta.env.VITE_NEYNAR_API_KEY;
     if (!apiKey) throw new Error('Missing NEYNAR_API_KEY');
     const res = await fetch(`${NEYNAR_API}?address=${address}`, {
-      headers: { 'api_key': apiKey }
+      headers: { 'x-api-key': apiKey }
     });
     if (!res.ok) throw new Error('Neynar fetch failed');
     const data = await res.json();
