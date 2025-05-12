@@ -48,6 +48,25 @@ export function Profile() {
     },
   });
 
+  // Toggle map visibility
+  const mapToggleMutation = useMutation({
+    mutationFn: async ({ id, show_map }: { id: string; show_map: boolean }) => {
+      const { error } = await supabase.from("activities").update({ show_map }).eq("id", id);
+      if (error) {
+        console.error("Supabase map toggle error:", error, JSON.stringify(error, null, 2));
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["activities"] });
+      toast({ title: "Map visibility updated", status: "success" });
+    },
+    onError: (error) => {
+      toast({ title: "Failed to update map visibility", description: error && typeof error === 'object' ? JSON.stringify(error, null, 2) : String(error), status: "error" });
+    },
+  });
+
   // Delete activity
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -140,20 +159,6 @@ export function Profile() {
           </Flex>
         </Box>
         {/* End Weekly Summary */}
-        <SimpleGrid columns={3} gap={4} maxW="400px" mx="auto">
-          <Box borderRadius="lg" borderWidth={1} borderColor={borderColor} p={4} textAlign="center">
-            <Text fontSize="2xl" fontWeight="bold">{totalActivities}</Text>
-            <Text fontSize="sm" color={mutedColor}>Activities</Text>
-          </Box>
-          <Box borderRadius="lg" borderWidth={1} borderColor={borderColor} p={4} textAlign="center">
-            <Text fontSize="2xl" fontWeight="bold">{totalDistance.toFixed(1)} km</Text>
-            <Text fontSize="sm" color={mutedColor}>Total Distance</Text>
-          </Box>
-          <Box borderRadius="lg" borderWidth={1} borderColor={borderColor} p={4} textAlign="center">
-            <Text fontSize="2xl" fontWeight="bold">{Math.floor(totalDuration / 60)}h {totalDuration % 60}m</Text>
-            <Text fontSize="sm" color={mutedColor}>Total Time</Text>
-          </Box>
-        </SimpleGrid>
       </Box>
       {/* Activities List */}
       <Box bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor} p={6}>
@@ -166,13 +171,16 @@ export function Profile() {
           <Stack spacing={4}>
             {activities.map((activity) => (
               <Box key={activity.id} position="relative">
-                <ActivityCard activity={activity} user={userProfile ? { avatarUrl: userProfile.avatarUrl, name: userProfile.displayName || userProfile.username } : undefined} showTipping={false} />
+                <ActivityCard activity={activity} user={userProfile ? { avatarUrl: userProfile.avatarUrl, name: userProfile.displayName || userProfile.username } : undefined} showTipping={false} aspect="wide" showMap={true} />
                 <Flex gap={2} align="center" position="absolute" top={2} right={2} zIndex={1}>
                   <Menu>
                     <MenuButton as={IconButton} icon={<FiMoreVertical />} variant="ghost" size="sm" />
                     <MenuList>
                       <MenuItem onClick={() => { setActionId(activity.id); setPendingAction("toggle"); setShowActionModal(true); }}>
                         {activity.is_public ? "Make Private" : "Make Public"}
+                      </MenuItem>
+                      <MenuItem onClick={() => mapToggleMutation.mutate({ id: activity.id, show_map: !activity.show_map })}>
+                        {activity.show_map === false ? "Show Map in Feed" : "Hide Map in Feed"}
                       </MenuItem>
                       <MenuItem color="red.500" onClick={() => { setActionId(activity.id); setPendingAction("delete"); setShowActionModal(true); }}>
                         Delete

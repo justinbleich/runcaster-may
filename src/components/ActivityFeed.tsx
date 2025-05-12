@@ -1,7 +1,7 @@
 import { Box, Flex, Stack, Text, Button, useColorModeValue, IconButton, HStack } from "@chakra-ui/react";
 import { useAccount } from "wagmi";
-import { getActivities } from "../lib/supabase";
-import { useQuery } from "@tanstack/react-query";
+import { getActivities, getLikeCount, hasLiked, likeActivity, unlikeActivity } from "../lib/supabase";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { useState } from "react";
 import { ActivityCard } from "./ActivityCard";
@@ -19,8 +19,36 @@ function useLikeState(_activityId: string) {
 }
 
 function ActivityFeedItem({ activity, address, cardBg, borderColor, mutedColor }: any) {
-  const { liked, count, toggle } = useLikeState(activity.id);
+  const queryClient = useQueryClient();
   const { data: userProfile } = useFarcasterProfile(activity.user_address);
+
+  // Real like state
+  const { data: likeCount = 0 } = useQuery({
+    queryKey: ['like-count', activity.id],
+    queryFn: () => getLikeCount(activity.id),
+    staleTime: 1000 * 60,
+  });
+  const { data: liked = false } = useQuery({
+    queryKey: ['liked', activity.id, address],
+    queryFn: () => (address ? hasLiked(activity.id, address) : false),
+    enabled: !!address,
+    staleTime: 1000 * 60,
+  });
+
+  const likeMutation = useMutation({
+    mutationFn: async () => {
+      if (!address) return;
+      if (liked) {
+        await unlikeActivity(activity.id, address);
+      } else {
+        await likeActivity(activity.id, address);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['like-count', activity.id] });
+      queryClient.invalidateQueries({ queryKey: ['liked', activity.id, address] });
+    },
+  });
 
   const handleTip = async (_activityId: string) => {
     // TODO: Implement tipping functionality with USDC
@@ -29,7 +57,7 @@ function ActivityFeedItem({ activity, address, cardBg, borderColor, mutedColor }
 
   return (
     <Box key={activity.id} bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor}>
-      <ActivityCard activity={activity} user={userProfile ? { avatarUrl: userProfile.avatarUrl, name: userProfile.displayName || userProfile.username } : undefined} />
+      <ActivityCard activity={activity} user={userProfile ? { avatarUrl: userProfile.avatarUrl, name: userProfile.displayName || userProfile.username } : undefined} aspect="square" showMap={activity.show_map !== false} />
       <Flex justify="space-between" align="center" mt={2} px={4} pb={2}>
         <HStack>
           <IconButton
@@ -38,9 +66,10 @@ function ActivityFeedItem({ activity, address, cardBg, borderColor, mutedColor }
             colorScheme={liked ? "orange" : "gray"}
             variant={liked ? "solid" : "ghost"}
             size="sm"
-            onClick={toggle}
+            onClick={() => likeMutation.mutate()}
+            isDisabled={!address || likeMutation.status === "pending"}
           />
-          <Text fontSize="sm" color={mutedColor}>{count}</Text>
+          <Text fontSize="sm" color={mutedColor}>{likeCount}</Text>
         </HStack>
         {address && address !== activity.user_address && (
           <Button

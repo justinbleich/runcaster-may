@@ -2,18 +2,22 @@ import { Box, Text, Flex, Badge, Avatar, Stack, useColorModeValue, Button } from
 import { useState } from "react";
 import { TippingModal } from "./TippingModal";
 import { truncateAddress } from '../lib/farcaster';
+import polyline from 'polyline';
 
-// Helper to generate Google Static Maps URL from route array
-function getStaticMapUrl(route: { lat: number; lng: number }[], apiKey?: string) {
-  if (!route || route.length === 0) return "";
-  const base = "https://maps.googleapis.com/maps/api/staticmap";
-  const size = "400x200";
-  const path =
-    "path=color:0x4285F4FF|weight:4|" +
-    route.map((p) => `${p.lat},${p.lng}`).join("|");
-  const markers = route.length > 0 ? `&markers=color:green|label:S|${route[0].lat},${route[0].lng}&markers=color:red|label:F|${route[route.length-1].lat},${route[route.length-1].lng}` : "";
-  const key = apiKey ? `&key=${apiKey}` : "";
-  return `${base}?size=${size}&${path}${markers}${key}`;
+// Helper to generate Mapbox Static Images URL from route array
+function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'square' | 'wide' = 'square') {
+  if (!route || route.length === 0) return '';
+  const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+  const style = 'mapbox/streets-v11';
+  const width = aspect === 'square' ? 400 : 400;
+  const height = aspect === 'square' ? 400 : 225; // 16:9 is 400x225
+  // Mapbox expects [lng, lat] pairs
+  const coords = route.map(p => [p.lng, p.lat]);
+  const encoded = polyline.encode(coords);
+  const path = `path-5+f44-0.5(${encoded})`;
+  // Center on route
+  const center = coords.length > 0 ? coords[Math.floor(coords.length / 2)] : [0, 0];
+  return `https://api.mapbox.com/styles/v1/${style}/static/${path}/auto/${width}x${height}@2x?access_token=${MAPBOX_TOKEN}`;
 }
 
 export interface ActivityCardProps {
@@ -28,12 +32,15 @@ export interface ActivityCardProps {
     description?: string;
     is_public: boolean;
     route?: { lat: number; lng: number }[];
+    show_map?: boolean;
   };
   user?: {
     avatarUrl?: string;
     name?: string;
   };
   showTipping?: boolean;
+  aspect?: 'square' | 'wide';
+  showMap?: boolean;
 }
 
 function formatTime(seconds: number) {
@@ -43,7 +50,7 @@ function formatTime(seconds: number) {
   return [h, m, s].map((v) => v.toString().padStart(2, "0")).join(":");
 }
 
-export function ActivityCard({ activity, user, showTipping = true }: ActivityCardProps) {
+export function ActivityCard({ activity, user, showTipping = true, aspect = 'square', showMap = true }: ActivityCardProps) {
   const [showTipModal, setShowTipModal] = useState(false);
   const cardBg = useColorModeValue("gray.100", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
@@ -70,12 +77,12 @@ export function ActivityCard({ activity, user, showTipping = true }: ActivityCar
             <Badge colorScheme="gray" ml={2} variant="outline">Private</Badge>
           )}
         </Flex>
-        {activity.route && activity.route.length > 1 && (
+        {showMap && activity.route && activity.route.length > 1 && (
           <Box mb={3} borderRadius="md" overflow="hidden">
             <img
-              src={getStaticMapUrl(activity.route)}
+              src={getMapboxStaticUrl(activity.route, aspect)}
               alt="Route preview"
-              style={{ width: "100%", borderRadius: 8 }}
+              style={{ width: "100%", borderRadius: 8, aspectRatio: aspect === 'square' ? '1 / 1' : '16 / 9' }}
             />
           </Box>
         )}
