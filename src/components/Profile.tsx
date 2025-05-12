@@ -4,7 +4,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUserActivities, supabase } from "../lib/supabase";
 import { useFarcasterProfile } from "../lib/farcaster";
 import { ActivityCard } from "./ActivityCard";
-import { useState } from "react";
 
 export function Profile() {
   const { address } = useAccount();
