@@ -147,12 +147,11 @@ export function Profile() {
       {/* User Info */}
       <Box bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor} p={8} textAlign="center">
         <Avatar size="2xl" src={userProfile?.avatarUrl} name={userProfile?.displayName || userProfile?.username || address} mb={3} />
-        <Text fontWeight="bold" fontSize="2xl">{userProfile?.displayName || userProfile?.username || truncateAddress(address)}</Text>
+        <Text fontWeight="bold" fontSize="2xl">
+          {userProfile?.displayName || userProfile?.username || truncateAddress(address)}
+        </Text>
         {userProfile?.username && (
           <Text fontSize="md" color={mutedColor}>@{userProfile?.username}</Text>
-        )}
-        {!userProfile?.displayName && !userProfile?.username && (
-          <Text fontSize="sm" color={mutedColor} mb={2}>{truncateAddress(address)}</Text>
         )}
         <Text fontSize="sm" color={mutedColor} mb={2}>FID: {userProfile?.fid || "-"}</Text>
         {/* Weekly Summary */}
