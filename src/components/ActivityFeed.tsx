@@ -31,7 +31,7 @@ function useLikeState(_activityId: string) {
   return { liked, count, toggle };
 }
 
-function ActivityFeedItem({ activity, address, NEYNAR_API_KEY, cardBg, borderColor, mutedColor }: any) {
+function ActivityFeedItem({ activity, address, cardBg, borderColor, mutedColor }: any) {
   const { liked, count, toggle } = useLikeState(activity.id);
   const { data: userProfile } = useFarcasterProfile(activity.user_address);
 
@@ -80,7 +80,6 @@ export function ActivityFeed() {
   const cardBg = useColorModeValue("gray.100", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const mutedColor = useColorModeValue("gray.500", "gray.400");
-  const NEYNAR_API_KEY = import.meta.env.VITE_NEYNAR_API_KEY;
 
   return (
     <Stack spacing={6}>
@@ -121,7 +120,6 @@ export function ActivityFeed() {
               key={activity.id}
               activity={activity}
               address={address}
-              NEYNAR_API_KEY={NEYNAR_API_KEY}
               cardBg={cardBg}
               borderColor={borderColor}
               mutedColor={mutedColor}
