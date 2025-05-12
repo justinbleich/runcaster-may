@@ -3,13 +3,11 @@ import { useAccount } from "wagmi";
 import { getActivities, getLikeCount, hasLiked, likeActivity, unlikeActivity } from "../lib/supabase";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ActivityCard } from "./ActivityCard";
-import { useFarcasterProfile } from "../lib/farcaster";
 import { sdk } from "@farcaster/frame-sdk";
 import { useState, useEffect } from "react";
 
 function ActivityFeedItem({ activity, address, cardBg, borderColor }: any) {
   const queryClient = useQueryClient();
-  const { data: userProfile } = useFarcasterProfile(activity.user_address);
   const [sdkUser, setSdkUser] = useState<any>(null);
   useEffect(() => {
     const getSdkUser = async () => {
@@ -49,12 +47,12 @@ function ActivityFeedItem({ activity, address, cardBg, borderColor }: any) {
     },
   });
 
-  // Prefer sdkUser if this is the current user's activity
-  let userForCard = userProfile ? { avatarUrl: userProfile.avatarUrl, name: userProfile.displayName || userProfile.username } : undefined;
+  // Only use sdk.context.user for the current user's activity
+  let userForCard = undefined;
   if (sdkUser && address && activity.user_address && address.toLowerCase() === activity.user_address.toLowerCase()) {
     userForCard = {
-      avatarUrl: sdkUser.pfp || userProfile?.avatarUrl,
-      name: sdkUser.displayName || sdkUser.username || userProfile?.displayName || userProfile?.username,
+      avatarUrl: (sdkUser as any).pfpUrl || (sdkUser as any).pfp,
+      name: sdkUser.displayName || sdkUser.username,
     };
   }
 
