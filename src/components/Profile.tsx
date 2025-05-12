@@ -30,29 +30,38 @@ export function Profile() {
   // Toggle public/private
   const toggleMutation = useMutation({
     mutationFn: async ({ id, is_public }: { id: string; is_public: boolean }) => {
+      console.log("Toggling visibility for activity:", id, "to", is_public);
       const { error } = await supabase.from("activities").update({ is_public }).eq("id", id);
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase toggle error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-activities"] });
+      toast({ title: "Visibility updated", status: "success" });
     },
-    onError: () => {
-      toast({ title: "Failed to update visibility", status: "error" });
+    onError: (error) => {
+      toast({ title: "Failed to update visibility", description: String(error), status: "error" });
     },
   });
 
   // Delete activity
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      console.log("Attempting to delete activity with id:", id);
       const { error } = await supabase.from("activities").delete().eq("id", id);
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase delete error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-activities"] });
       toast({ title: "Activity deleted", status: "success" });
     },
-    onError: () => {
-      toast({ title: "Failed to delete activity", status: "error" });
+    onError: (error) => {
+      toast({ title: "Failed to delete activity", description: String(error), status: "error" });
     },
   });
 
@@ -65,6 +74,7 @@ export function Profile() {
   const [actionId, setActionId] = useState<string | null>(null);
   const [showActionModal, setShowActionModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<"delete" | "toggle" | null>(null);
+  const [isActionLoading, setIsActionLoading] = useState(false);
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   if (!address) {
@@ -154,19 +164,18 @@ export function Profile() {
                 Cancel
               </Button>
               <Button colorScheme={pendingAction === "delete" ? "red" : "orange"} ml={3}
+                isLoading={isActionLoading}
                 onClick={() => {
+                  setIsActionLoading(true);
                   if (actionId && pendingAction === "delete") {
-                    console.log("Deleting activity with id:", actionId);
                     deleteMutation.mutate(actionId);
                   }
                   if (actionId && pendingAction === "toggle") {
                     const activity = activities.find(a => a.id === actionId);
                     if (activity) {
-                      console.log("Toggling visibility for activity:", actionId, "to", !activity.is_public);
                       toggleMutation.mutate({ id: actionId, is_public: !activity.is_public });
                     }
                   }
-                  setShowActionModal(false); setActionId(null); setPendingAction(null);
                 }}
               >
                 {pendingAction === "delete" ? "Delete" : "Change"}
