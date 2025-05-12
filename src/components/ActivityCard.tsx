@@ -31,6 +31,10 @@ function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'squa
   // Create the path for the route
   const path = route.map(p => `${p.lng},${p.lat}`).join(';');
   
+  // Add start and end markers
+  const startMarker = `pin-s+00ff00(${route[0].lng},${route[0].lat})`;
+  const endMarker = `pin-s+ff0000(${route[route.length - 1].lng},${route[route.length - 1].lat})`;
+  
   // Calculate the center point
   const centerLng = (minLng + maxLng) / 2;
   const centerLat = (minLat + maxLat) / 2;
@@ -39,8 +43,8 @@ function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'squa
   const width = aspect === 'square' ? 400 : 400;
   const height = aspect === 'square' ? 400 : 225; // 16:9 is 400x225
   
-  // Construct the URL for the static image
-  const url = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/path-5+f44-0.5(${path})/${centerLng},${centerLat},12/${width}x${height}@2x?access_token=${MAPBOX_TOKEN}`;
+  // Construct the URL for the static image with markers
+  const url = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${startMarker},${endMarker},path-5+f44-0.5(${path})/${centerLng},${centerLat},12/${width}x${height}@2x?access_token=${MAPBOX_TOKEN}`;
   console.log('Generated Mapbox URL:', url);
   return url;
 }

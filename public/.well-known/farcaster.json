@@ -10,8 +10,9 @@
     "iconUrl": "https://runcaster-cursor.vercel.app/icon.png",
     "homeUrl": "https://runcaster-cursor.vercel.app",
     "imageUrl": "https://runcaster-cursor.vercel.app/image.png",
-    "buttonTitle": "Track Your Run",
+    "buttonTitle": "Start Tracking",
     "splashImageUrl": "https://runcaster-cursor.vercel.app/splash.png",
-    "splashBackgroundColor": "#4A90E2"
+    "splashBackgroundColor": "#FF6B00",
+    "description": "Track your runs and bike rides, share your routes, and earn tips from the Farcaster community. Join the movement and turn your activities into social experiences!"
   }
 }
