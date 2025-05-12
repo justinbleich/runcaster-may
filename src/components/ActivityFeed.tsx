@@ -4,10 +4,22 @@ import { getActivities, getLikeCount, hasLiked, likeActivity, unlikeActivity } f
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ActivityCard } from "./ActivityCard";
 import { useFarcasterProfile } from "../lib/farcaster";
+import { sdk } from "@farcaster/frame-sdk";
+import { useState, useEffect } from "react";
 
 function ActivityFeedItem({ activity, address, cardBg, borderColor }: any) {
   const queryClient = useQueryClient();
   const { data: userProfile } = useFarcasterProfile(activity.user_address);
+  const [sdkUser, setSdkUser] = useState<any>(null);
+  useEffect(() => {
+    const getSdkUser = async () => {
+      try {
+        const context = await sdk.context;
+        if (context.user) setSdkUser(context.user);
+      } catch (e) {}
+    };
+    getSdkUser();
+  }, []);
 
   // Real like state
   const { data: likeCount = 0 } = useQuery({
@@ -37,11 +49,20 @@ function ActivityFeedItem({ activity, address, cardBg, borderColor }: any) {
     },
   });
 
+  // Prefer sdkUser if this is the current user's activity
+  let userForCard = userProfile ? { avatarUrl: userProfile.avatarUrl, name: userProfile.displayName || userProfile.username } : undefined;
+  if (sdkUser && address && activity.user_address && address.toLowerCase() === activity.user_address.toLowerCase()) {
+    userForCard = {
+      avatarUrl: sdkUser.pfp || userProfile?.avatarUrl,
+      name: sdkUser.displayName || sdkUser.username || userProfile?.displayName || userProfile?.username,
+    };
+  }
+
   return (
     <Box key={activity.id} bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor}>
       <ActivityCard 
         activity={activity} 
-        user={userProfile ? { avatarUrl: userProfile.avatarUrl, name: userProfile.displayName || userProfile.username } : undefined}
+        user={userForCard}
         aspect="square" 
         showMap={activity.show_map !== false}
         showTipping={address && address !== activity.user_address}

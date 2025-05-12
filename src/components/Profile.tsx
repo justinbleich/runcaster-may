@@ -45,14 +45,19 @@ export function Profile() {
   );
 
   // Use SDK user data if available, otherwise fall back to Neynar data
-  const typedUserProfile: FarcasterProfile | null = sdkUser ? {
-    fid: sdkUser.fid,
-    username: sdkUser.username,
-    displayName: sdkUser.displayName,
-    avatarUrl: sdkUser.pfp,
-    bio: sdkUser.bio,
-    location: sdkUser.location?.description,
-  } : userProfile || null;
+  let typedUserProfile: FarcasterProfile | null = null;
+  if (sdkUser) {
+    typedUserProfile = {
+      fid: sdkUser.fid,
+      username: sdkUser.username,
+      displayName: sdkUser.displayName,
+      avatarUrl: sdkUser.pfp || userProfile?.avatarUrl, // fallback to Neynar avatar if SDK pfp missing
+      bio: sdkUser.bio,
+      location: sdkUser.location?.description,
+    };
+  } else if (userProfile) {
+    typedUserProfile = userProfile;
+  }
 
   // Debugging output
   if (typeof window !== 'undefined') {
