@@ -31,7 +31,7 @@ function useLikeState(_activityId: string) {
   return { liked, count, toggle };
 }
 
-function ActivityFeedItem({ activity, address, NEYNAR_API_KEY, cardBg, borderColor, mutedColor, accent }: any) {
+function ActivityFeedItem({ activity, address, NEYNAR_API_KEY, cardBg, borderColor, mutedColor }: any) {
   const { liked, count, toggle } = useLikeState(activity.id);
   const { data: userProfile } = useFarcasterProfile(activity.user_address, NEYNAR_API_KEY);
 
@@ -80,7 +80,6 @@ export function ActivityFeed() {
   const cardBg = useColorModeValue("gray.100", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const mutedColor = useColorModeValue("gray.500", "gray.400");
-  const accent = "orange.500";
   const NEYNAR_API_KEY = import.meta.env.VITE_NEYNAR_API_KEY;
 
   return (
@@ -92,7 +91,7 @@ export function ActivityFeed() {
         </Text>
         <Flex justify="space-between" align="center">
           <Stack align="center" spacing={0}>
-            <Text fontWeight="bold" fontSize="lg" color={accent}>{weeklyStats.activities}</Text>
+            <Text fontWeight="bold" fontSize="lg" color="orange.500">{weeklyStats.activities}</Text>
             <Text fontSize="xs" color={mutedColor}>Activities</Text>
           </Stack>
           <Stack align="center" spacing={0}>
@@ -126,7 +125,6 @@ export function ActivityFeed() {
               cardBg={cardBg}
               borderColor={borderColor}
               mutedColor={mutedColor}
-              accent={accent}
             />
           ))}
         </Stack>
