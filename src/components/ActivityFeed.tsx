@@ -3,7 +3,6 @@ import { useAccount } from "wagmi";
 import { getActivities, getLikeCount, hasLiked, likeActivity, unlikeActivity } from "../lib/supabase";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
-import { useState } from "react";
 import { ActivityCard } from "./ActivityCard";
 import { useFarcasterProfile } from "../lib/farcaster";
 
