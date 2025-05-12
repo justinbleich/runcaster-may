@@ -1,4 +1,6 @@
-import { Box, Text, Flex, Badge, Avatar, Stack, useColorModeValue } from "@chakra-ui/react";
+import { Box, Text, Flex, Badge, Avatar, Stack, useColorModeValue, Button } from "@chakra-ui/react";
+import { useState } from "react";
+import { TippingModal } from "./TippingModal";
 
 // Helper to generate Google Static Maps URL from route array
 function getStaticMapUrl(route: { lat: number; lng: number }[], apiKey?: string) {
@@ -21,7 +23,7 @@ export interface ActivityCardProps {
     distance: number;
     duration: number;
     created_at: string;
-    name?: string;
+    title?: string;
     description?: string;
     is_public: boolean;
     route?: { lat: number; lng: number }[];
@@ -32,57 +34,78 @@ export interface ActivityCardProps {
   };
 }
 
-function formatTime(minutes: number) {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+function formatTime(seconds: number) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  return [h, m, s].map((v) => v.toString().padStart(2, "0")).join(":");
 }
 
 export function ActivityCard({ activity, user }: ActivityCardProps) {
+  const [showTipModal, setShowTipModal] = useState(false);
   const cardBg = useColorModeValue("gray.100", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const mutedColor = useColorModeValue("gray.500", "gray.400");
   const typeColor = activity.type === "run" ? "orange.400" : "blue.400";
   const date = new Date(activity.created_at);
+
   return (
-    <Box bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor} p={4} mb={4}>
-      <Flex align="center" mb={2} gap={3}>
-        {user?.avatarUrl && <Avatar size="sm" src={user.avatarUrl} name={user.name} />}
-        <Stack spacing={0} flex={1}>
-          <Text fontWeight="bold" fontSize="md">
-            {activity.name || `${activity.type.charAt(0).toUpperCase() + activity.type.slice(1)} on ${date.toLocaleDateString()}`}
-          </Text>
-          <Text fontSize="xs" color={mutedColor}>{date.toLocaleString()}</Text>
-        </Stack>
-        <Badge colorScheme={activity.type === "run" ? "orange" : "blue"} variant="subtle">
-          {activity.type.charAt(0).toUpperCase() + activity.type.slice(1)}
-        </Badge>
-        {!activity.is_public && (
-          <Badge colorScheme="gray" ml={2} variant="outline">Private</Badge>
+    <>
+      <Box bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor} p={4} mb={4}>
+        <Flex align="center" mb={2} gap={3}>
+          {user?.avatarUrl && <Avatar size="sm" src={user.avatarUrl} name={user.name} />}
+          <Stack spacing={0} flex={1}>
+            <Text fontWeight="bold" fontSize="md">
+              {activity.title || `${activity.type.charAt(0).toUpperCase() + activity.type.slice(1)} on ${date.toLocaleDateString()}`}
+            </Text>
+            <Text fontSize="xs" color={mutedColor}>{date.toLocaleString()}</Text>
+          </Stack>
+          <Badge colorScheme={activity.type === "run" ? "orange" : "blue"} variant="subtle">
+            {activity.type.charAt(0).toUpperCase() + activity.type.slice(1)}
+          </Badge>
+          {!activity.is_public && (
+            <Badge colorScheme="gray" ml={2} variant="outline">Private</Badge>
+          )}
+        </Flex>
+        {activity.route && activity.route.length > 1 && (
+          <Box mb={3} borderRadius="md" overflow="hidden">
+            <img
+              src={getStaticMapUrl(activity.route)}
+              alt="Route preview"
+              style={{ width: "100%", borderRadius: 8 }}
+            />
+          </Box>
         )}
-      </Flex>
-      {activity.route && activity.route.length > 1 && (
-        <Box mb={3} borderRadius="md" overflow="hidden">
-          <img
-            src={getStaticMapUrl(activity.route)}
-            alt="Route preview"
-            style={{ width: "100%", borderRadius: 8 }}
-          />
-        </Box>
-      )}
-      <Flex gap={4} mb={2}>
-        <Text fontSize="sm" color={typeColor} fontWeight="semibold">
-          {activity.distance.toFixed(2)} km
-        </Text>
-        <Text fontSize="sm" color={mutedColor}>
-          {formatTime(activity.duration)}
-        </Text>
-      </Flex>
-      {activity.description && (
-        <Text fontSize="sm" color={mutedColor} mb={1}>
-          {activity.description}
-        </Text>
-      )}
-    </Box>
+        <Flex gap={4} mb={2}>
+          <Text fontSize="sm" color={typeColor} fontWeight="semibold">
+            {activity.distance.toFixed(2)} km
+          </Text>
+          <Text fontSize="sm" color={mutedColor}>
+            {formatTime(activity.duration)}
+          </Text>
+        </Flex>
+        {activity.description && (
+          <Text fontSize="sm" color={mutedColor} mb={1}>
+            {activity.description}
+          </Text>
+        )}
+        <Flex justify="flex-end" mt={2}>
+          <Button
+            size="sm"
+            variant="outline"
+            colorScheme="orange"
+            onClick={() => setShowTipModal(true)}
+          >
+            Tip
+          </Button>
+        </Flex>
+      </Box>
+      <TippingModal
+        isOpen={showTipModal}
+        onClose={() => setShowTipModal(false)}
+        recipientAddress={activity.user_address}
+        activityTitle={activity.title}
+      />
+    </>
   );
 } 
