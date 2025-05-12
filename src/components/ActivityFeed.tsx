@@ -7,19 +7,6 @@ import { useState } from "react";
 import { ActivityCard } from "./ActivityCard";
 import { useFarcasterProfile } from "../lib/farcaster";
 
-// Dummy weekly snapshot data for now
-const weeklyStats = {
-  activities: 10,
-  time: 459, // minutes
-  distance: 58.83, // miles
-};
-
-function formatWeeklyTime(minutes: number) {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return `${h}h ${m}m`;
-}
-
 // Dummy like state for demo
 function useLikeState(_activityId: string) {
   const [liked, setLiked] = useState(false);
