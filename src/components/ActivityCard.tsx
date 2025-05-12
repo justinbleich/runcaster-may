@@ -20,16 +20,32 @@ function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'squa
     console.error('Mapbox secret token detected. Please use a public token (starts with pk.) for client-side code.');
     return '';
   }
-  const style = 'mapbox/streets-v11';
+
+  // Calculate the bounding box of the route
+  const lats = route.map(p => p.lat);
+  const lngs = route.map(p => p.lng);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs);
+  const maxLng = Math.max(...lngs);
+  
+  // Add some padding to the bounds
+  const latPadding = (maxLat - minLat) * 0.1;
+  const lngPadding = (maxLng - minLng) * 0.1;
+  
+  // Create the path for the route
+  const path = route.map(p => `${p.lng},${p.lat}`).join(';');
+  
+  // Calculate the center point
+  const centerLng = (minLng + maxLng) / 2;
+  const centerLat = (minLat + maxLat) / 2;
+  
+  // Set dimensions based on aspect ratio
   const width = aspect === 'square' ? 400 : 400;
   const height = aspect === 'square' ? 400 : 225; // 16:9 is 400x225
-  // Mapbox expects [lng, lat] pairs
-  const coords = route.map(p => [p.lng, p.lat]) as [number, number][];
-  console.log('Route coordinates:', coords);
-  const encoded = polyline.encode(coords);
-  console.log('Encoded polyline:', encoded);
-  const path = `path-5+f44-0.5(${encoded})`;
-  const url = `https://api.mapbox.com/styles/v1/${style}/static/${path}/auto/${width}x${height}@2x?access_token=${MAPBOX_TOKEN}`;
+  
+  // Construct the URL for the static image
+  const url = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/path-5+f44-0.5(${path})/${centerLng},${centerLat},12/${width}x${height}@2x?access_token=${MAPBOX_TOKEN}`;
   console.log('Generated Mapbox URL:', url);
   return url;
 }
