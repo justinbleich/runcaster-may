@@ -41,4 +41,9 @@ export function useFarcasterProfile(address: string) {
     enabled: !!address,
     staleTime: 1000 * 60 * 10, // 10 minutes
   });
+}
+
+export function truncateAddress(address: string) {
+  if (!address) return '';
+  return address.slice(0, 4) + '…' + address.slice(-4);
 } 

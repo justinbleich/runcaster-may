@@ -40,6 +40,7 @@ export async function getActivities() {
   const { data, error } = await supabase
     .from('activities')
     .select('*')
+    .eq('is_public', true)
     .order('created_at', { ascending: false });
 
   if (error) throw error;

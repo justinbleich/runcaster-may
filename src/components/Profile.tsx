@@ -8,6 +8,7 @@ import { useFarcasterProfile } from "../lib/farcaster";
 import { ActivityCard } from "./ActivityCard";
 import { useState, useRef } from "react";
 import { FiMoreVertical } from "react-icons/fi";
+import { startOfWeek, endOfWeek, isWithinInterval, parseISO } from 'date-fns';
 
 export function Profile() {
   const { address } = useAccount();
@@ -72,6 +73,24 @@ export function Profile() {
   const totalDuration = activities.reduce((sum, a) => sum + a.duration, 0);
   const totalActivities = activities.length;
 
+  // Weekly summary (user-specific)
+  const now = new Date();
+  const weekStart = startOfWeek(now, { weekStartsOn: 1 }); // Monday
+  const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+  const weeklyActivities = activities.filter(a => {
+    const date = typeof a.created_at === 'string' ? parseISO(a.created_at) : new Date(a.created_at);
+    return isWithinInterval(date, { start: weekStart, end: weekEnd });
+  });
+  const weeklyDistance = weeklyActivities.reduce((sum, a) => sum + a.distance, 0);
+  const weeklyDuration = weeklyActivities.reduce((sum, a) => sum + a.duration, 0);
+
+  function formatWeeklyTime(seconds: number) {
+    const m = Math.floor(seconds / 60);
+    const h = Math.floor(m / 60);
+    const min = m % 60;
+    return `${h}h ${min}m`;
+  }
+
   // Modal state for delete and actions
   const [actionId, setActionId] = useState<string | null>(null);
   const [showActionModal, setShowActionModal] = useState(false);
@@ -100,6 +119,27 @@ export function Profile() {
           <Text fontSize="md" color={mutedColor}>@{userProfile?.username}</Text>
         )}
         <Text fontSize="sm" color={mutedColor} mb={2}>FID: {userProfile?.fid || "-"}</Text>
+        {/* Weekly Summary */}
+        <Box bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor} p={4} mt={4}>
+          <Text fontSize="xs" color={mutedColor} fontWeight="bold" mb={2}>
+            Your Weekly Snapshot
+          </Text>
+          <Flex justify="space-between" align="center">
+            <Stack align="center" spacing={0}>
+              <Text fontWeight="bold" fontSize="lg" color="orange.500">{weeklyActivities.length}</Text>
+              <Text fontSize="xs" color={mutedColor}>Activities</Text>
+            </Stack>
+            <Stack align="center" spacing={0}>
+              <Text fontWeight="bold" fontSize="lg">{formatWeeklyTime(weeklyDuration)}</Text>
+              <Text fontSize="xs" color={mutedColor}>Time</Text>
+            </Stack>
+            <Stack align="center" spacing={0}>
+              <Text fontWeight="bold" fontSize="lg">{weeklyDistance.toFixed(2)}</Text>
+              <Text fontSize="xs" color={mutedColor}>Distance</Text>
+            </Stack>
+          </Flex>
+        </Box>
+        {/* End Weekly Summary */}
         <SimpleGrid columns={3} gap={4} maxW="400px" mx="auto">
           <Box borderRadius="lg" borderWidth={1} borderColor={borderColor} p={4} textAlign="center">
             <Text fontSize="2xl" fontWeight="bold">{totalActivities}</Text>

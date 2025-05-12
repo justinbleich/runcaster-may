@@ -1,6 +1,7 @@
 import { Box, Text, Flex, Badge, Avatar, Stack, useColorModeValue, Button } from "@chakra-ui/react";
 import { useState } from "react";
 import { TippingModal } from "./TippingModal";
+import { truncateAddress } from '../lib/farcaster';
 
 // Helper to generate Google Static Maps URL from route array
 function getStaticMapUrl(route: { lat: number; lng: number }[], apiKey?: string) {
@@ -60,6 +61,7 @@ export function ActivityCard({ activity, user, showTipping = true }: ActivityCar
               {activity.title || `${activity.type.charAt(0).toUpperCase() + activity.type.slice(1)} on ${date.toLocaleDateString()}`}
             </Text>
             <Text fontSize="xs" color={mutedColor}>{date.toLocaleString()}</Text>
+            <Text fontSize="xs" color={mutedColor}>{truncateAddress(activity.user_address)}</Text>
           </Stack>
           <Badge colorScheme={activity.type === "run" ? "orange" : "blue"} variant="subtle">
             {activity.type.charAt(0).toUpperCase() + activity.type.slice(1)}

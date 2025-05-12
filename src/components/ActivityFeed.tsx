@@ -83,27 +83,6 @@ export function ActivityFeed() {
 
   return (
     <Stack spacing={6}>
-      {/* Weekly Snapshot */}
-      <Box bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor} p={4}>
-        <Text fontSize="xs" color={mutedColor} fontWeight="bold" mb={2}>
-          Your Weekly Snapshot
-        </Text>
-        <Flex justify="space-between" align="center">
-          <Stack align="center" spacing={0}>
-            <Text fontWeight="bold" fontSize="lg" color="orange.500">{weeklyStats.activities}</Text>
-            <Text fontSize="xs" color={mutedColor}>Activities</Text>
-          </Stack>
-          <Stack align="center" spacing={0}>
-            <Text fontWeight="bold" fontSize="lg">{formatWeeklyTime(weeklyStats.time)}</Text>
-            <Text fontSize="xs" color={mutedColor}>Time</Text>
-          </Stack>
-          <Stack align="center" spacing={0}>
-            <Text fontWeight="bold" fontSize="lg">{weeklyStats.distance.toFixed(2)}</Text>
-            <Text fontSize="xs" color={mutedColor}>Distance</Text>
-          </Stack>
-        </Flex>
-      </Box>
-
       {/* Activities Feed */}
       {isLoading ? (
         <Box bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor} p={6}>
