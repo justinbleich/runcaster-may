@@ -4,7 +4,7 @@ import {
 import { useAccount } from "wagmi";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUserActivities, supabase } from "../lib/supabase";
-import { useFarcasterProfile, truncateAddress, FarcasterProfile } from "../lib/farcaster";
+import { truncateAddress, FarcasterProfile } from "../lib/farcaster";
 import { ActivityCard } from "./ActivityCard";
 import { useState, useRef, useEffect } from "react";
 import { FiMoreVertical } from "react-icons/fi";
