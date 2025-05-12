@@ -23,6 +23,7 @@ export async function fetchFarcasterProfile(address: string): Promise<FarcasterP
     });
     if (!res.ok) throw new Error('Neynar fetch failed');
     const data = await res.json();
+    console.log('Neynar raw response:', data);
     const user = data.result?.user;
     if (!user) throw new Error('No user found');
     return {
