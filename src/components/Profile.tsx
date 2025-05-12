@@ -1,10 +1,13 @@
-import { Box, Stack, Flex, Text, Heading, Avatar, SimpleGrid, useColorModeValue, Button, Switch, useToast, AlertDialog, AlertDialogBody, AlertDialogFooter, AlertDialogHeader, AlertDialogContent, AlertDialogOverlay } from "@chakra-ui/react";
+import {
+  Box, Stack, Flex, Text, Heading, Avatar, SimpleGrid, useColorModeValue, Button, Switch, useToast, AlertDialog, AlertDialogBody, AlertDialogFooter, AlertDialogHeader, AlertDialogContent, AlertDialogOverlay, IconButton, Menu, MenuButton, MenuList, MenuItem
+} from "@chakra-ui/react";
 import { useAccount } from "wagmi";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUserActivities, supabase } from "../lib/supabase";
 import { useFarcasterProfile } from "../lib/farcaster";
 import { ActivityCard } from "./ActivityCard";
 import { useState, useRef } from "react";
+import { FiMoreVertical } from "react-icons/fi";
 
 export function Profile() {
   const { address } = useAccount();
@@ -58,8 +61,10 @@ export function Profile() {
   const totalDuration = activities.reduce((sum, a) => sum + a.duration, 0);
   const totalActivities = activities.length;
 
-  // Modal state for delete
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  // Modal state for delete and actions
+  const [actionId, setActionId] = useState<string | null>(null);
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"delete" | "toggle" | null>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   if (!address) {
@@ -72,21 +77,18 @@ export function Profile() {
     );
   }
 
+  // Refined Profile header
   return (
     <Stack spacing={4}>
       {/* User Info */}
-      <Box bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor} p={6}>
-        <Flex align="center" gap={4} mb={4}>
-          <Avatar size="lg" src={userProfile?.avatarUrl} name={userProfile?.displayName || userProfile?.username || address} />
-          <Box>
-            <Text fontWeight="medium">{userProfile?.displayName || userProfile?.username || address.slice(0, 6) + "..." + address.slice(-4)}</Text>
-            {userProfile?.username && (
-              <Text fontSize="sm" color={mutedColor}>@{userProfile?.username}</Text>
-            )}
-            <Text fontSize="xs" color={mutedColor}>FID: {userProfile?.fid || "-"}</Text>
-          </Box>
-        </Flex>
-        <SimpleGrid columns={3} gap={4}>
+      <Box bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor} p={8} textAlign="center">
+        <Avatar size="2xl" src={userProfile?.avatarUrl} name={userProfile?.displayName || userProfile?.username || address} mb={3} />
+        <Text fontWeight="bold" fontSize="2xl">{userProfile?.displayName || userProfile?.username || address.slice(0, 6) + "..." + address.slice(-4)}</Text>
+        {userProfile?.username && (
+          <Text fontSize="md" color={mutedColor}>@{userProfile?.username}</Text>
+        )}
+        <Text fontSize="sm" color={mutedColor} mb={2}>FID: {userProfile?.fid || "-"}</Text>
+        <SimpleGrid columns={3} gap={4} maxW="400px" mx="auto">
           <Box borderRadius="lg" borderWidth={1} borderColor={borderColor} p={4} textAlign="center">
             <Text fontSize="2xl" fontWeight="bold">{totalActivities}</Text>
             <Text fontSize="sm" color={mutedColor}>Activities</Text>
@@ -114,46 +116,60 @@ export function Profile() {
               <Box key={activity.id} position="relative">
                 <ActivityCard activity={activity} user={userProfile ? { avatarUrl: userProfile.avatarUrl, name: userProfile.displayName || userProfile.username } : undefined} />
                 <Flex gap={2} align="center" position="absolute" top={2} right={2} zIndex={1}>
-                  <Switch
-                    size="sm"
-                    colorScheme="orange"
-                    isChecked={activity.is_public}
-                    onChange={() => toggleMutation.mutate({ id: activity.id, is_public: !activity.is_public })}
-                  />
-                  <Button
-                    size="xs"
-                    colorScheme="red"
-                    variant="outline"
-                    onClick={() => setDeleteId(activity.id)}
-                  >
-                    Delete
-                  </Button>
+                  <Menu>
+                    <MenuButton as={IconButton} icon={<FiMoreVertical />} variant="ghost" size="sm" />
+                    <MenuList>
+                      <MenuItem onClick={() => { setActionId(activity.id); setPendingAction("toggle"); setShowActionModal(true); }}>
+                        {activity.is_public ? "Make Private" : "Make Public"}
+                      </MenuItem>
+                      <MenuItem color="red.500" onClick={() => { setActionId(activity.id); setPendingAction("delete"); setShowActionModal(true); }}>
+                        Delete
+                      </MenuItem>
+                    </MenuList>
+                  </Menu>
                 </Flex>
               </Box>
             ))}
           </Stack>
         )}
       </Box>
-      {/* Delete Confirmation Modal */}
+      {/* Action Modal (Toggle/Delete) */}
       <AlertDialog
-        isOpen={!!deleteId}
+        isOpen={showActionModal}
         leastDestructiveRef={cancelRef}
-        onClose={() => setDeleteId(null)}
+        onClose={() => { setShowActionModal(false); setActionId(null); setPendingAction(null); }}
       >
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Activity
+              {pendingAction === "delete" ? "Delete Activity" : "Change Visibility"}
             </AlertDialogHeader>
             <AlertDialogBody>
-              Are you sure you want to delete this activity? This action cannot be undone.
+              {pendingAction === "delete"
+                ? "Are you sure you want to delete this activity? This action cannot be undone."
+                : "Are you sure you want to change the visibility of this activity?"}
             </AlertDialogBody>
             <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={() => setDeleteId(null)}>
+              <Button ref={cancelRef} onClick={() => { setShowActionModal(false); setActionId(null); setPendingAction(null); }}>
                 Cancel
               </Button>
-              <Button colorScheme="red" onClick={() => { if (deleteId) deleteMutation.mutate(deleteId); setDeleteId(null); }} ml={3}>
-                Delete
+              <Button colorScheme={pendingAction === "delete" ? "red" : "orange"} ml={3}
+                onClick={() => {
+                  if (actionId && pendingAction === "delete") {
+                    console.log("Deleting activity with id:", actionId);
+                    deleteMutation.mutate(actionId);
+                  }
+                  if (actionId && pendingAction === "toggle") {
+                    const activity = activities.find(a => a.id === actionId);
+                    if (activity) {
+                      console.log("Toggling visibility for activity:", actionId, "to", !activity.is_public);
+                      toggleMutation.mutate({ id: actionId, is_public: !activity.is_public });
+                    }
+                  }
+                  setShowActionModal(false); setActionId(null); setPendingAction(null);
+                }}
+              >
+                {pendingAction === "delete" ? "Delete" : "Change"}
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
