@@ -27,6 +27,7 @@ interface ActivityForm {
   route: { lat: number; lng: number }[];
   start_time?: number;
   end_time?: number;
+  show_map?: boolean;
 }
 
 function formatTime(seconds: number) {
@@ -173,14 +174,15 @@ export function ActivityTracker() {
         fid,
         user_address: address,
         type: activity.type,
-        distance: activity.distance,
-        duration: activity.duration,
+        distance: Number(activity.distance),
+        duration: Math.round(Number(activity.duration)),
         title: activity.title,
         description: activity.description,
         is_public: activity.is_public,
         route: activity.route,
         start_time: activity.start_time,
         end_time: activity.end_time,
+        show_map: activity.show_map !== false,
       });
       // Reset form
       setActivity({
