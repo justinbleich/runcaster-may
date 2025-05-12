@@ -16,6 +16,10 @@ function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'squa
     console.error('Mapbox token is missing. Please add VITE_MAPBOX_TOKEN to your environment variables.');
     return '';
   }
+  if (MAPBOX_TOKEN.startsWith('sk.')) {
+    console.error('Mapbox secret token detected. Please use a public token (starts with pk.) for client-side code.');
+    return '';
+  }
   const style = 'mapbox/streets-v11';
   const width = aspect === 'square' ? 400 : 400;
   const height = aspect === 'square' ? 400 : 225; // 16:9 is 400x225
@@ -96,6 +100,10 @@ export function ActivityCard({ activity, user, showTipping = true, aspect = 'squ
                 src={mapUrl}
                 alt="Route preview"
                 style={{ width: "100%", borderRadius: 8, aspectRatio: aspect === 'square' ? '1 / 1' : '16 / 9' }}
+                onError={(e) => {
+                  console.error('Failed to load map image:', e);
+                  e.currentTarget.style.display = 'none';
+                }}
               />
             </Box>
           );
