@@ -44,6 +44,12 @@ export function useFarcasterProfile(address: string) {
 }
 
 export function truncateAddress(address: string) {
-  if (!address) return '';
-  return address.slice(0, 4) + '…' + address.slice(-4);
+  if (!address) {
+    console.warn('truncateAddress called with empty address');
+    return '';
+  }
+  console.log('Truncating address:', address);
+  const truncated = address.slice(0, 4) + '…' + address.slice(-4);
+  console.log('Truncated result:', truncated);
+  return truncated;
 } 

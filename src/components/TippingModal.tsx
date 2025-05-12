@@ -121,7 +121,7 @@ export function TippingModal({ isOpen, onClose, recipientAddress, activityTitle 
               {activityTitle ? `Tip for "${activityTitle}"` : "Send a tip to support this activity"}
             </Text>
             <HStack justify="center" spacing={2}>
-              <Image src="/usdc-logo.png" alt="USDC" boxSize="24px" />
+              <Image src="/usdc-logo.svg" alt="USDC" boxSize="24px" />
               <Text fontSize="2xl" fontWeight="bold">1 USDC</Text>
             </HStack>
             <Text fontSize="sm" color="gray.500">

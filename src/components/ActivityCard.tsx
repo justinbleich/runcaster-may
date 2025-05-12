@@ -6,8 +6,12 @@ import polyline from '@mapbox/polyline';
 
 // Helper to generate Mapbox Static Images URL from route array
 function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'square' | 'wide' = 'square') {
-  if (!route || route.length === 0) return '';
+  if (!route || route.length === 0) {
+    console.log('No route data provided for map');
+    return '';
+  }
   const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+  console.log('Mapbox token present:', !!MAPBOX_TOKEN);
   if (!MAPBOX_TOKEN) {
     console.error('Mapbox token is missing. Please add VITE_MAPBOX_TOKEN to your environment variables.');
     return '';
@@ -17,7 +21,9 @@ function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'squa
   const height = aspect === 'square' ? 400 : 225; // 16:9 is 400x225
   // Mapbox expects [lng, lat] pairs
   const coords = route.map(p => [p.lng, p.lat]) as [number, number][];
+  console.log('Route coordinates:', coords);
   const encoded = polyline.encode(coords);
+  console.log('Encoded polyline:', encoded);
   const path = `path-5+f44-0.5(${encoded})`;
   const url = `https://api.mapbox.com/styles/v1/${style}/static/${path}/auto/${width}x${height}@2x?access_token=${MAPBOX_TOKEN}`;
   console.log('Generated Mapbox URL:', url);
