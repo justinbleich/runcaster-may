@@ -10,6 +10,7 @@ export async function fetchFarcasterProfile(address: string, apiKey: string) {
   if (!res.ok) throw new Error('Failed to fetch Farcaster profile');
   const data = await res.json();
   return {
+    fid: data.result.user.fid,
     name: data.result.user.display_name || data.result.user.username,
     avatarUrl: data.result.user.pfp_url
   };
