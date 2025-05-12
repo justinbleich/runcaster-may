@@ -2,7 +2,6 @@ import { Box, Text, Flex, Badge, Avatar, Stack, useColorModeValue, Button } from
 import { useState } from "react";
 import { TippingModal } from "./TippingModal";
 import { truncateAddress } from '../lib/farcaster';
-import polyline from '@mapbox/polyline';
 
 // Helper to generate Mapbox Static Images URL from route array
 function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'square' | 'wide' = 'square') {
@@ -28,10 +27,6 @@ function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'squa
   const maxLat = Math.max(...lats);
   const minLng = Math.min(...lngs);
   const maxLng = Math.max(...lngs);
-  
-  // Add some padding to the bounds
-  const latPadding = (maxLat - minLat) * 0.1;
-  const lngPadding = (maxLng - minLng) * 0.1;
   
   // Create the path for the route
   const path = route.map(p => `${p.lng},${p.lat}`).join(';');
