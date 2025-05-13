@@ -6,22 +6,20 @@ import { getActivities } from "../lib/supabase";
 import { sdk } from "@farcaster/frame-sdk";
 import { useFarcasterProfile } from "../lib/farcaster";
 
-// Fetch suggested follows from Neynar
-async function fetchSuggestedFollows() {
+// Fetch user profile from Neynar /user/bulk endpoint
+async function fetchBulkUser() {
   const apiKey = import.meta.env.VITE_NEYNAR_API_KEY;
   if (!apiKey) throw new Error('Missing NEYNAR_API_KEY');
-  // For demo, use a hardcoded FID or get from sdk.context.user
   let fid = 1;
   if (typeof window !== 'undefined' && (window as any).sdk?.context?.user?.fid) {
     fid = (window as any).sdk.context.user.fid;
   }
-  const res = await fetch(`https://api.neynar.com/v2/farcaster/user/suggested-follows?fid=${fid}`, {
+  const res = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`, {
     headers: { 'x-api-key': apiKey }
   });
-  if (!res.ok) throw new Error('Neynar suggested follows fetch failed');
+  if (!res.ok) throw new Error('Neynar bulk user fetch failed');
   const data = await res.json();
-  // Parse users
-  return (data.result?.users || []).map((user: any) => ({
+  return (data.users || []).map((user: any) => ({
     fid: user.fid,
     username: user.username,
     displayName: user.display_name,
@@ -30,22 +28,22 @@ async function fetchSuggestedFollows() {
 }
 
 function SuggestedFollowsSection() {
-  const { data: suggestedFollows = [], isLoading, error } = useQuery({
-    queryKey: ["suggested-follows"],
-    queryFn: fetchSuggestedFollows,
+  const { data: users = [], isLoading, error } = useQuery({
+    queryKey: ["bulk-user-profile"],
+    queryFn: fetchBulkUser,
   });
   return (
     <Box>
-      <Text fontWeight="bold" mb={2}>Suggested Follows</Text>
+      <Text fontWeight="bold" mb={2}>Your Farcaster Profile (Bulk API)</Text>
       <Stack spacing={3}>
         {isLoading && <Text>Loading...</Text>}
-        {error && <Text color="red.500">Error loading suggestions</Text>}
-        {!isLoading && !error && suggestedFollows.map((user: any) => (
+        {error && <Text color="red.500">Error loading user</Text>}
+        {!isLoading && !error && users.map((user: any) => (
           <HStack key={user.fid} spacing={3}>
             <Avatar size="sm" src={user.avatarUrl} name={user.displayName || user.username} />
             <Text fontWeight="medium">@{user.username}</Text>
             <Button size="sm" variant="outline" onClick={() => sdk.actions.viewProfile({ fid: user.fid })}>
-              Follow
+              View Profile
             </Button>
           </HStack>
         ))}
