@@ -5,37 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { getActivities } from "../lib/supabase";
 import { sdk } from "@farcaster/frame-sdk";
 
-// Fetch suggested follows from Neynar /user/suggested-follows endpoint
-async function fetchSuggestedFollows() {
-  const apiKey = import.meta.env.VITE_NEYNAR_API_KEY;
-  if (!apiKey) throw new Error('Missing NEYNAR_API_KEY');
-  let fid = 1;
-  try {
-    if (typeof window !== 'undefined' && (window as any).sdk?.context?.user?.fid) {
-      fid = (window as any).sdk.context.user.fid;
-    }
-    const url = `https://api.neynar.com/v2/farcaster/user/suggested-follows?fid=${fid}`;
-    const res = await fetch(url, {
-      headers: { 'x-api-key': apiKey }
-    });
-    if (!res.ok) {
-      const text = await res.text();
-      console.error('Neynar suggested follows error:', res.status, text);
-      throw new Error(`Neynar error ${res.status}: ${text}`);
-    }
-    const data = await res.json();
-    return (data.result?.users || []).map((user: any) => ({
-      fid: user.fid,
-      username: user.username,
-      displayName: user.display_name,
-      avatarUrl: user.pfp_url,
-    }));
-  } catch (e) {
-    console.error('Neynar suggested follows fetch failed:', e);
-    throw e;
-  }
-}
-
 // Fetch followers from Neynar
 async function fetchFollowers(fid: number) {
   const apiKey = import.meta.env.VITE_NEYNAR_API_KEY;
