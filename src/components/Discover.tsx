@@ -6,44 +6,54 @@ import { getActivities } from "../lib/supabase";
 import { sdk } from "@farcaster/frame-sdk";
 import { useFarcasterProfile } from "../lib/farcaster";
 
-// Fetch user profile from Neynar /user/bulk endpoint
-async function fetchBulkUser() {
+// Fetch suggested follows from Neynar /user/suggested-follows endpoint
+async function fetchSuggestedFollows() {
   const apiKey = import.meta.env.VITE_NEYNAR_API_KEY;
   if (!apiKey) throw new Error('Missing NEYNAR_API_KEY');
   let fid = 1;
-  if (typeof window !== 'undefined' && (window as any).sdk?.context?.user?.fid) {
-    fid = (window as any).sdk.context.user.fid;
+  try {
+    if (typeof window !== 'undefined' && (window as any).sdk?.context?.user?.fid) {
+      fid = (window as any).sdk.context.user.fid;
+    }
+    const url = `https://api.neynar.com/v2/farcaster/user/suggested-follows?fid=${fid}`;
+    const res = await fetch(url, {
+      headers: { 'x-api-key': apiKey }
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      console.error('Neynar suggested follows error:', res.status, text);
+      throw new Error(`Neynar error ${res.status}: ${text}`);
+    }
+    const data = await res.json();
+    return (data.result?.users || []).map((user: any) => ({
+      fid: user.fid,
+      username: user.username,
+      displayName: user.display_name,
+      avatarUrl: user.pfp_url,
+    }));
+  } catch (e) {
+    console.error('Neynar suggested follows fetch failed:', e);
+    throw e;
   }
-  const res = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`, {
-    headers: { 'x-api-key': apiKey }
-  });
-  if (!res.ok) throw new Error('Neynar bulk user fetch failed');
-  const data = await res.json();
-  return (data.users || []).map((user: any) => ({
-    fid: user.fid,
-    username: user.username,
-    displayName: user.display_name,
-    avatarUrl: user.pfp_url,
-  }));
 }
 
 function SuggestedFollowsSection() {
   const { data: users = [], isLoading, error } = useQuery({
-    queryKey: ["bulk-user-profile"],
-    queryFn: fetchBulkUser,
+    queryKey: ["suggested-follows"],
+    queryFn: fetchSuggestedFollows,
   });
   return (
     <Box>
-      <Text fontWeight="bold" mb={2}>Your Farcaster Profile (Bulk API)</Text>
+      <Text fontWeight="bold" mb={2}>Suggested Follows (Neynar)</Text>
       <Stack spacing={3}>
         {isLoading && <Text>Loading...</Text>}
-        {error && <Text color="red.500">Error loading user</Text>}
+        {error && <Text color="red.500">Error loading suggestions: {String(error)}</Text>}
         {!isLoading && !error && users.map((user: any) => (
           <HStack key={user.fid} spacing={3}>
             <Avatar size="sm" src={user.avatarUrl} name={user.displayName || user.username} />
             <Text fontWeight="medium">@{user.username}</Text>
             <Button size="sm" variant="outline" onClick={() => sdk.actions.viewProfile({ fid: user.fid })}>
-              View Profile
+              Follow
             </Button>
           </HStack>
         ))}
