@@ -4,7 +4,6 @@ import { Button } from "./ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { getActivities } from "../lib/supabase";
 import { sdk } from "@farcaster/frame-sdk";
-import { useFarcasterProfile } from "../lib/farcaster";
 
 // Fetch suggested follows from Neynar /user/suggested-follows endpoint
 async function fetchSuggestedFollows() {
@@ -62,31 +61,6 @@ async function fetchProfilesByFids(fids: number[]) {
     map[user.fid] = user;
   });
   return map;
-}
-
-function SuggestedFollowsSection() {
-  const { data: users = [], isLoading, error } = useQuery({
-    queryKey: ["suggested-follows"],
-    queryFn: fetchSuggestedFollows,
-  });
-  return (
-    <Box>
-      <Text fontWeight="bold" mb={2}>Suggested Follows (Neynar)</Text>
-      <Stack spacing={3}>
-        {isLoading && <Text>Loading...</Text>}
-        {error && <Text color="red.500">Error loading suggestions: {String(error)}</Text>}
-        {!isLoading && !error && users.map((user: any) => (
-          <HStack key={user.fid} spacing={3}>
-            <Avatar size="sm" src={user.avatarUrl} name={user.displayName || user.username} />
-            <Text fontWeight="medium">@{user.username}</Text>
-            <Button size="sm" variant="outline" onClick={() => sdk.actions.viewProfile({ fid: user.fid })}>
-              Follow
-            </Button>
-          </HStack>
-        ))}
-      </Stack>
-    </Box>
-  );
 }
 
 function ActivityUser({ fid, profileMap }: { fid: number, profileMap: Record<number, any> }) {
