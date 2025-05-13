@@ -1,31 +1,50 @@
 import { useState } from "react";
 import { Stack, Box, Text, Avatar, HStack } from "@chakra-ui/react";
 import { Button } from "./ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { getActivities } from "../lib/supabase";
+import { sdk } from "@farcaster/frame-sdk";
+import { useFarcasterProfile } from "../lib/farcaster";
 
-// Stub data for now
-const suggestedFollows = [
-  { fid: 1, username: "alice", displayName: "Alice", avatarUrl: "https://i.pravatar.cc/100?u=alice" },
-  { fid: 2, username: "bob", displayName: "Bob", avatarUrl: "https://i.pravatar.cc/100?u=bob" },
-];
-const activities = [
-  { id: 1, location: "Austin", user_display_name: "Alice", user_avatar_url: "https://i.pravatar.cc/100?u=alice", title: "Morning Run" },
-  { id: 2, location: "NYC", user_display_name: "Bob", user_avatar_url: "https://i.pravatar.cc/100?u=bob", title: "Central Park Ride" },
-  { id: 3, location: "Remote", user_display_name: "Charlie", user_avatar_url: "https://i.pravatar.cc/100?u=charlie", title: "Virtual 5K" },
-];
-const hiddenGems = [
-  { fid: 3, username: "charlie", displayName: "Charlie", avatarUrl: "https://i.pravatar.cc/100?u=charlie" },
-];
+// Fetch suggested follows from Neynar
+async function fetchSuggestedFollows() {
+  const apiKey = import.meta.env.VITE_NEYNAR_API_KEY;
+  if (!apiKey) throw new Error('Missing NEYNAR_API_KEY');
+  // For demo, use a hardcoded FID or get from sdk.context.user
+  let fid = 1;
+  if (typeof window !== 'undefined' && (window as any).sdk?.context?.user?.fid) {
+    fid = (window as any).sdk.context.user.fid;
+  }
+  const res = await fetch(`https://api.neynar.com/v2/farcaster/user/suggested-follows?fid=${fid}`, {
+    headers: { 'x-api-key': apiKey }
+  });
+  if (!res.ok) throw new Error('Neynar suggested follows fetch failed');
+  const data = await res.json();
+  // Parse users
+  return (data.result?.users || []).map((user: any) => ({
+    fid: user.fid,
+    username: user.username,
+    displayName: user.display_name,
+    avatarUrl: user.pfp_url,
+  }));
+}
 
 function SuggestedFollowsSection() {
+  const { data: suggestedFollows = [], isLoading, error } = useQuery({
+    queryKey: ["suggested-follows"],
+    queryFn: fetchSuggestedFollows,
+  });
   return (
     <Box>
       <Text fontWeight="bold" mb={2}>Suggested Follows</Text>
       <Stack spacing={3}>
-        {suggestedFollows.map(user => (
+        {isLoading && <Text>Loading...</Text>}
+        {error && <Text color="red.500">Error loading suggestions</Text>}
+        {!isLoading && !error && suggestedFollows.map((user: any) => (
           <HStack key={user.fid} spacing={3}>
             <Avatar size="sm" src={user.avatarUrl} name={user.displayName || user.username} />
             <Text fontWeight="medium">@{user.username}</Text>
-            <Button size="sm" variant="outline" onClick={() => {/* TODO: open Farcaster profile modal */}}>
+            <Button size="sm" variant="outline" onClick={() => sdk.actions.viewProfile({ fid: user.fid })}>
               Follow
             </Button>
           </HStack>
@@ -35,28 +54,40 @@ function SuggestedFollowsSection() {
   );
 }
 
+function ActivityUser({ fid }: { fid: number }) {
+  const { data: profile } = useFarcasterProfile("", fid);
+  return (
+    <HStack spacing={2}>
+      <Avatar size="sm" src={profile?.avatarUrl} name={profile?.displayName || profile?.username || String(fid)} />
+      <Text fontWeight="medium">{profile?.displayName || profile?.username || `FID ${fid}`}</Text>
+    </HStack>
+  );
+}
+
 function LocationFacetedActivitiesSection() {
+  const { data: activities = [], isLoading } = useQuery({
+    queryKey: ["all-activities"],
+    queryFn: getActivities,
+  });
   const [selectedLocation, setSelectedLocation] = useState('All');
-  const locations = Array.from(new Set(activities.map(a => a.location)));
-  const filteredActivities = selectedLocation === 'All'
-    ? activities
-    : activities.filter(a => a.location === selectedLocation);
+  // For now, just use 'All' as the only filter since location is not in Activity
+  const locations = ['All'];
+  const filteredActivities = activities;
   return (
     <Box>
       <Text fontWeight="bold" mb={2}>Filter by Location:</Text>
       <HStack spacing={2} mb={4}>
-        <Button size="sm" variant={selectedLocation === 'All' ? 'default' : 'outline'} onClick={() => setSelectedLocation('All')}>All</Button>
         {locations.map(loc => (
           <Button key={loc} size="sm" variant={selectedLocation === loc ? 'default' : 'outline'} onClick={() => setSelectedLocation(loc)}>{loc}</Button>
         ))}
       </HStack>
       <Stack spacing={3}>
-        {filteredActivities.map(activity => (
+        {isLoading ? <Text>Loading...</Text> : filteredActivities.map(activity => (
           <Box key={activity.id} p={3} borderWidth={1} borderRadius="md">
             <HStack spacing={3}>
-              <Avatar size="sm" src={activity.user_avatar_url} name={activity.user_display_name} />
-              <Text fontWeight="medium">{activity.title}</Text>
-              <Text color="gray.500">{activity.location}</Text>
+              <ActivityUser fid={activity.fid} />
+              <Text fontWeight="medium">{activity.title || 'Untitled'}</Text>
+              <Text color="gray.500">FID: {activity.fid}</Text>
             </HStack>
           </Box>
         ))}
@@ -66,15 +97,29 @@ function LocationFacetedActivitiesSection() {
 }
 
 function HiddenGemsSection() {
+  const { data: activities = [], isLoading } = useQuery({
+    queryKey: ["all-activities"],
+    queryFn: getActivities,
+  });
+  // Group by fid
+  const userMap = new Map();
+  activities.forEach(a => {
+    if (!userMap.has(a.fid)) {
+      userMap.set(a.fid, { fid: a.fid, count: 1 });
+    } else {
+      userMap.get(a.fid).count++;
+    }
+  });
+  // Sort by least activities, then take first 3
+  const hiddenGems = Array.from(userMap.values()).sort((a, b) => a.count - b.count).slice(0, 3);
   return (
     <Box>
       <Text fontWeight="bold" mb={2}>Hidden Gems</Text>
       <Stack spacing={3}>
-        {hiddenGems.map(user => (
+        {isLoading ? <Text>Loading...</Text> : hiddenGems.map(user => (
           <HStack key={user.fid} spacing={3}>
-            <Avatar size="sm" src={user.avatarUrl} name={user.displayName || user.username} />
-            <Text fontWeight="medium">@{user.username}</Text>
-            <Button size="sm" variant="outline" onClick={() => {/* TODO: open Farcaster profile modal */}}>
+            <ActivityUser fid={user.fid} />
+            <Button size="sm" variant="outline" onClick={() => sdk.actions.viewProfile({ fid: user.fid })}>
               Follow
             </Button>
           </HStack>
