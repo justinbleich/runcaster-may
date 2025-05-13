@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Stack, Box, Text, Avatar, HStack } from "@chakra-ui/react";
+import { Stack, Box, Text, Avatar, HStack, Badge } from "@chakra-ui/react";
 import { Button } from "./ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { getActivities } from "../lib/supabase";
@@ -48,15 +48,37 @@ function LocationFacetedActivitiesSection({ profileMap }: { profileMap: Record<n
     queryFn: getActivities,
   });
   const [selectedLocation, setSelectedLocation] = useState('All');
-  // For now, just use 'All' as the only filter since location is not in Activity
-  const locations = ['All'];
-  const filteredActivities = activities;
+  
+  // Get unique locations from activities
+  const locations = useMemo(() => {
+    const uniqueLocations = new Set<string>();
+    activities.forEach((activity: any) => {
+      if (activity.location) {
+        uniqueLocations.add(activity.location);
+      }
+    });
+    return ['All', ...Array.from(uniqueLocations).sort()];
+  }, [activities]);
+
+  // Filter activities by selected location
+  const filteredActivities = useMemo(() => {
+    if (selectedLocation === 'All') return activities;
+    return activities.filter((activity: any) => activity.location === selectedLocation);
+  }, [activities, selectedLocation]);
+
   return (
     <Box>
       <Text fontWeight="bold" mb={2}>Filter by Location:</Text>
-      <HStack spacing={2} mb={4}>
+      <HStack spacing={2} mb={4} wrap="wrap">
         {locations.map(loc => (
-          <Button key={loc} size="sm" variant={selectedLocation === loc ? 'default' : 'outline'} onClick={() => setSelectedLocation(loc)}>{loc}</Button>
+          <Button 
+            key={loc} 
+            size="sm" 
+            variant={selectedLocation === loc ? 'default' : 'outline'} 
+            onClick={() => setSelectedLocation(loc)}
+          >
+            {loc}
+          </Button>
         ))}
       </HStack>
       <Stack spacing={3}>
@@ -65,7 +87,9 @@ function LocationFacetedActivitiesSection({ profileMap }: { profileMap: Record<n
             <HStack spacing={3}>
               <ActivityUser fid={activity.fid} profileMap={profileMap} />
               <Text fontWeight="medium">{activity.title || 'Untitled'}</Text>
-              <Text color="gray.500">FID: {activity.fid}</Text>
+              {activity.location && (
+                <Badge colorScheme="gray" variant="subtle">{activity.location}</Badge>
+              )}
             </HStack>
           </Box>
         ))}

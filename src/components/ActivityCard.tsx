@@ -66,6 +66,7 @@ export interface ActivityCardProps {
     route?: { lat: number; lng: number }[];
     show_map?: boolean;
     hide_start_end?: boolean;
+    location?: string;
   };
   user?: {
     avatarUrl?: string;
@@ -108,6 +109,9 @@ export function ActivityCard({ activity, user, showTipping = true, aspect = 'squ
             </Text>
             <Text fontSize="xs" color={mutedColor}>{date.toLocaleString()}</Text>
             <Text fontSize="xs" color={mutedColor}>{truncateAddress(activity.user_address)}</Text>
+            {activity.location && (
+              <Text fontSize="xs" color={mutedColor}>{activity.location}</Text>
+            )}
           </Stack>
           <Badge colorScheme={activity.type === "run" ? "orange" : "blue"} variant="subtle">
             {activity.type.charAt(0).toUpperCase() + activity.type.slice(1)}

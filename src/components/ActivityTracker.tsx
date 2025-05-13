@@ -35,6 +35,7 @@ interface ActivityForm {
   end_time?: number;
   show_map?: boolean;
   hide_start_end?: boolean;
+  location?: string;
 }
 
 function formatTime(seconds: number) {
@@ -86,6 +87,7 @@ export function ActivityTracker() {
     start_time: undefined,
     end_time: undefined,
     hide_start_end: false,
+    location: "",
   });
   const [timer, setTimer] = useState(0); // seconds
   const [liveDistance, setLiveDistance] = useState(0); // km
@@ -206,6 +208,7 @@ export function ActivityTracker() {
         start_time: undefined,
         end_time: undefined,
         hide_start_end: false,
+        location: "",
       });
       setTimer(0);
       setLiveDistance(0);
@@ -238,6 +241,7 @@ export function ActivityTracker() {
       start_time: undefined,
       end_time: undefined,
       hide_start_end: false,
+      location: "",
     });
     setTimer(0);
     setLiveDistance(0);
@@ -325,6 +329,14 @@ export function ActivityTracker() {
                     placeholder="Optional description"
                     value={activity.description || ""}
                     onChange={(e) => setActivity({ ...activity, description: e.target.value })}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel fontSize="sm">Location</FormLabel>
+                  <Input
+                    placeholder="e.g. San Francisco, CA"
+                    value={activity.location || ""}
+                    onChange={(e) => setActivity({ ...activity, location: e.target.value })}
                   />
                 </FormControl>
                 <FormControl display="flex" alignItems="center">

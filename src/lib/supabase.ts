@@ -25,6 +25,7 @@ export interface Activity {
   end_time?: number;
   show_map?: boolean;
   hide_start_end?: boolean;
+  location?: string;  // City name or location identifier
 }
 
 export async function createActivity(activity: Omit<Activity, 'id' | 'created_at'>) {
