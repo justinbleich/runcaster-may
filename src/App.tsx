@@ -6,6 +6,7 @@ import { farcasterFrame as miniAppConnector } from "@farcaster/frame-wagmi-conne
 import { ActivityFeed } from "./components/ActivityFeed";
 import { ActivityTracker } from "./components/ActivityTracker";
 import { Profile } from "./components/Profile";
+import { Discover } from "./components/Discover";
 import {
   Box,
   Tabs,
@@ -56,7 +57,7 @@ function App() {
           >
             <TabList
               display="grid"
-              gridTemplateColumns="repeat(3, 1fr)"
+              gridTemplateColumns="repeat(4, 1fr)"
               bg={tabBg}
               borderRadius="lg"
               borderWidth={1}
@@ -79,6 +80,12 @@ function App() {
                 _selected={{ bg: tabActiveBg, color: "orange.500", fontWeight: "bold" }}
                 borderRadius="md"
               >
+                Discover
+              </Tab>
+              <Tab
+                _selected={{ bg: tabActiveBg, color: "orange.500", fontWeight: "bold" }}
+                borderRadius="md"
+              >
                 Profile
               </Tab>
             </TabList>
@@ -88,6 +95,9 @@ function App() {
               </TabPanel>
               <TabPanel px={0}>
                 <ActivityTracker />
+              </TabPanel>
+              <TabPanel px={0}>
+                <Discover />
               </TabPanel>
               <TabPanel px={0}>
                 <Profile />
