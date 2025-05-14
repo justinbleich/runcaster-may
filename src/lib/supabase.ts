@@ -34,18 +34,28 @@ export async function createActivity(activity: Omit<Activity, 'id' | 'created_at
   // Calculate pace before storing (duration is in minutes)
   const pace = calculatePace(activity.distance, activity.duration, activity.type);
   
-  const { data, error } = await supabase
-    .from('activities')
-    .insert([{ 
-      ...activity, 
-      pace,
-      show_map: activity.show_map !== false 
-    }])
-    .select()
-    .single();
+  console.log('Creating activity with type:', activity.type);
+  
+  try {
+    const { data, error } = await supabase
+      .from('activities')
+      .insert([{ 
+        ...activity, 
+        pace,
+        show_map: activity.show_map !== false 
+      }])
+      .select()
+      .single();
 
-  if (error) throw error;
-  return data;
+    if (error) {
+      console.error('Supabase error creating activity:', error);
+      throw error;
+    }
+    return data;
+  } catch (error) {
+    console.error('Exception creating activity:', error);
+    throw error;
+  }
 }
 
 export async function getActivities() {
