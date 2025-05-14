@@ -1,9 +1,9 @@
 // Calculate pace for activities
-export function calculatePace(distance: number, duration: number, type: 'run' | 'bike'): string {
-  if (distance === 0) return type === 'run' ? '--:--/km' : '--.- km/h';
+export function calculatePace(distance: number, duration: number, type: 'run' | 'bike' | 'walk'): string {
+  if (distance === 0) return type === 'bike' ? '--.- km/h' : '--:--/km';
   
-  if (type === 'run') {
-    // For running: minutes per kilometer (duration is in minutes)
+  if (type === 'run' || type === 'walk') {
+    // For running/walking: minutes per kilometer (duration is in minutes)
     const paceMinutes = duration / distance;
     const minutes = Math.floor(paceMinutes);
     const seconds = Math.round((paceMinutes - minutes) * 60);
@@ -15,11 +15,11 @@ export function calculatePace(distance: number, duration: number, type: 'run' | 
   }
 }
 
-export function calculatePaceFromSeconds(distance: number, durationSeconds: number, type: 'run' | 'bike'): string {
-  if (distance === 0) return type === 'run' ? '--:--/km' : '--.- km/h';
+export function calculatePaceFromSeconds(distance: number, durationSeconds: number, type: 'run' | 'bike' | 'walk'): string {
+  if (distance === 0) return type === 'bike' ? '--.- km/h' : '--:--/km';
   
-  if (type === 'run') {
-    // For running: minutes per kilometer
+  if (type === 'run' || type === 'walk') {
+    // For running/walking: minutes per kilometer
     const paceSeconds = durationSeconds / distance;
     const minutes = Math.floor(paceSeconds / 60);
     const seconds = Math.round(paceSeconds % 60);

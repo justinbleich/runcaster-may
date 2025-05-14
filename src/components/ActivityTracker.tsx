@@ -25,7 +25,7 @@ import {
 } from "@chakra-ui/react";
 
 interface ActivityForm {
-  type: "run" | "bike";
+  type: "run" | "bike" | "walk";
   distance: number;
   duration: number;
   title: string;
@@ -98,7 +98,7 @@ export function ActivityTracker() {
   const [showSummary, setShowSummary] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const geoWatchId = useRef<number | null>(null);
-  const [activityType, setActivityType] = useState<"run" | "bike">("run");
+  const [activityType, setActivityType] = useState<"run" | "bike" | "walk">("run");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const cancelRef = useRef<HTMLButtonElement>(null);
@@ -274,7 +274,7 @@ export function ActivityTracker() {
           {!isTracking && !showSummary && (
             <Stack spacing={4} align="center">
               <Text fontWeight="medium">Activity Type</Text>
-              <Flex align="center" gap={4}>
+              <Flex align="center" gap={4} wrap="wrap">
                 <Button
                   colorScheme={activityType === "run" ? "orange" : "gray"}
                   variant={activityType === "run" ? "solid" : "outline"}
@@ -288,6 +288,13 @@ export function ActivityTracker() {
                   onClick={() => setActivityType("bike")}
                 >
                   Bike
+                </Button>
+                <Button
+                  colorScheme={activityType === "walk" ? "orange" : "gray"}
+                  variant={activityType === "walk" ? "solid" : "outline"}
+                  onClick={() => setActivityType("walk")}
+                >
+                  Walk
                 </Button>
               </Flex>
               <Button colorScheme="orange" w="full" onClick={handleStartTracking}>

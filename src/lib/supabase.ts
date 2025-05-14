@@ -14,7 +14,7 @@ export interface Activity {
   id: string;
   fid: number;
   user_address: string;
-  type: 'run' | 'bike';
+  type: 'run' | 'bike' | 'walk';
   distance: number;
   duration: number;
   created_at: string;

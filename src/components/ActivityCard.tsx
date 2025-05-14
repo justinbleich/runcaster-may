@@ -1,8 +1,9 @@
-import { Box, Text, Flex, Badge, Avatar, Stack, useColorModeValue, Button } from "@chakra-ui/react";
+import { Box, Text, Flex, Badge, Avatar, Stack, useColorModeValue, Button, Icon } from "@chakra-ui/react";
 import { useState } from "react";
 import { TippingModal } from "./TippingModal";
 import { truncateAddress } from '../lib/farcaster';
 import { calculatePace } from '../lib/pace';
+import { FaRunning, FaBiking, FaWalking } from 'react-icons/fa';
 
 // Helper to generate Mapbox Static Images URL from route array
 function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'square' | 'wide' = 'square', hideStartEnd?: boolean) {
@@ -57,7 +58,7 @@ export interface ActivityCardProps {
   activity: {
     id: string;
     user_address: string;
-    type: "run" | "bike";
+    type: "run" | "bike" | "walk";
     distance: number;
     duration: number;
     created_at: string;
@@ -97,8 +98,34 @@ export function ActivityCard({ activity, user, showTipping = true, aspect = 'squ
   const cardBg = useColorModeValue("gray.100", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const mutedColor = useColorModeValue("gray.500", "gray.400");
-  const typeColor = activity.type === "run" ? "orange.400" : "blue.400";
+  const typeColor = activity.type === "run" ? "orange.400" : activity.type === "bike" ? "blue.400" : "green.400";
   const date = new Date(activity.created_at);
+
+  const getActivityIcon = (type: string) => {
+    switch(type) {
+      case 'run':
+        return FaRunning;
+      case 'bike':
+        return FaBiking;
+      case 'walk':
+        return FaWalking;
+      default:
+        return FaRunning;
+    }
+  };
+
+  const getActivityColor = (type: string) => {
+    switch(type) {
+      case 'run':
+        return "orange";
+      case 'bike':
+        return "blue";
+      case 'walk':
+        return "green";
+      default:
+        return "orange";
+    }
+  };
 
   return (
     <>
@@ -115,8 +142,11 @@ export function ActivityCard({ activity, user, showTipping = true, aspect = 'squ
               <Text fontSize="xs" color={mutedColor}>{activity.location}</Text>
             )}
           </Stack>
-          <Badge colorScheme={activity.type === "run" ? "orange" : "blue"} variant="subtle">
-            {activity.type.charAt(0).toUpperCase() + activity.type.slice(1)}
+          <Badge colorScheme={getActivityColor(activity.type)} variant="subtle">
+            <Flex align="center" gap={1}>
+              <Icon as={getActivityIcon(activity.type)} />
+              <Text>{activity.type.charAt(0).toUpperCase() + activity.type.slice(1)}</Text>
+            </Flex>
           </Badge>
           {!activity.is_public && (
             <Badge colorScheme="gray" ml={2} variant="outline">Private</Badge>
