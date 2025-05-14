@@ -4,6 +4,7 @@ import { TippingModal } from "./TippingModal";
 import { truncateAddress } from '../lib/farcaster';
 import { calculatePace } from '../lib/pace';
 import { FaRunning, FaBiking, FaWalking } from 'react-icons/fa';
+import { TaggedDescription } from './TaggedDescription';
 
 // Helper to generate Mapbox Static Images URL from route array
 function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'square' | 'wide' = 'square', hideStartEnd?: boolean) {
@@ -181,9 +182,10 @@ export function ActivityCard({ activity, user, showTipping = true, aspect = 'squ
           </Text>
         </Flex>
         {activity.description && (
-          <Text fontSize="sm" color={mutedColor} mb={1}>
-            {activity.description}
-          </Text>
+          <TaggedDescription 
+            description={activity.description}
+            mutedColor={mutedColor}
+          />
         )}
         <Flex justify="flex-end" mt={2}>
           <Stack direction="row" align="center" spacing={2}>

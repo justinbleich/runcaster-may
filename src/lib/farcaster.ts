@@ -97,11 +97,30 @@ export function useFarcasterProfile(address: string, fid?: number, options?: { e
   });
 }
 
-export function truncateAddress(address: string) {
-  if (!address) {
-    console.warn('truncateAddress called with empty address');
-    return '';
+export function truncateAddress(address: string): string {
+  if (!address) return '';
+  return address.slice(0, 6) + '...' + address.slice(-4);
+}
+
+// Fetch users that the current user follows
+export async function fetchFollowing(fid: number) {
+  if (!fid) return [];
+  
+  try {
+    const apiKey = import.meta.env.VITE_NEYNAR_API_KEY;
+    const res = await fetch(`https://api.neynar.com/v2/farcaster/following?fid=${fid}&limit=100`, {
+      headers: { 'x-api-key': apiKey }
+    });
+    
+    if (!res.ok) {
+      console.error('Failed to fetch following users:', await res.text());
+      return [];
+    }
+    
+    const data = await res.json();
+    return data.users || [];
+  } catch (error) {
+    console.error('Error fetching following users:', error);
+    return [];
   }
-  const truncated = address.slice(0, 4) + '…' + address.slice(-4);
-  return truncated;
 } 

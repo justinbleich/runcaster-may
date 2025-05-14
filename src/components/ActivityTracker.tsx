@@ -4,6 +4,9 @@ import { createActivity } from "../lib/supabase";
 import { useQueryClient } from "@tanstack/react-query";
 import { sdk } from "@farcaster/frame-sdk";
 import { calculatePaceFromSeconds } from '../lib/pace';
+import { fetchFollowing } from "../lib/farcaster";
+import { useQuery } from "@tanstack/react-query";
+import { UserTagInput } from "./UserTagInput";
 import {
   Box,
   Input,
@@ -120,6 +123,13 @@ export function ActivityTracker() {
     };
     getFid();
   }, []);
+
+  // Get following users for tagging
+  const { data: followingUsers = [] } = useQuery({
+    queryKey: ['following', fid],
+    queryFn: () => fetchFollowing(fid || 0),
+    enabled: !!fid
+  });
 
   const handleStartTracking = () => {
     setIsTracking(true);
@@ -341,10 +351,10 @@ export function ActivityTracker() {
                 </FormControl>
                 <FormControl>
                   <FormLabel fontSize="sm">Description</FormLabel>
-                  <Input
-                    placeholder="Optional description"
+                  <UserTagInput 
                     value={activity.description || ""}
-                    onChange={(e) => setActivity({ ...activity, description: e.target.value })}
+                    onChange={(value) => setActivity({ ...activity, description: value })}
+                    followingUsers={followingUsers}
                   />
                 </FormControl>
                 <FormControl>
