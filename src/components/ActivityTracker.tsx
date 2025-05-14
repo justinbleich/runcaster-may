@@ -3,6 +3,7 @@ import { useAccount } from "wagmi";
 import { createActivity } from "../lib/supabase";
 import { useQueryClient } from "@tanstack/react-query";
 import { sdk } from "@farcaster/frame-sdk";
+import { calculatePaceFromSeconds } from '../lib/pace';
 import {
   Box,
   Input,
@@ -36,6 +37,7 @@ interface ActivityForm {
   show_map?: boolean;
   hide_start_end?: boolean;
   location?: string;
+  pace?: string;
 }
 
 function formatTime(seconds: number) {
@@ -88,6 +90,7 @@ export function ActivityTracker() {
     end_time: undefined,
     hide_start_end: false,
     location: "",
+    pace: undefined,
   });
   const [timer, setTimer] = useState(0); // seconds
   const [liveDistance, setLiveDistance] = useState(0); // km
@@ -209,6 +212,7 @@ export function ActivityTracker() {
         end_time: undefined,
         hide_start_end: false,
         location: "",
+        pace: undefined,
       });
       setTimer(0);
       setLiveDistance(0);
@@ -242,6 +246,7 @@ export function ActivityTracker() {
       end_time: undefined,
       hide_start_end: false,
       location: "",
+      pace: undefined,
     });
     setTimer(0);
     setLiveDistance(0);
@@ -294,6 +299,9 @@ export function ActivityTracker() {
             <Stack spacing={4} align="center">
               <Text fontSize="2xl" fontWeight="bold">{formatTime(timer)}</Text>
               <Text color={mutedColor}>Distance: {liveDistance.toFixed(2)} km</Text>
+              <Text color={mutedColor}>
+                Pace: {calculatePaceFromSeconds(liveDistance, timer, activityType)}
+              </Text>
               <Text color={mutedColor}>Type: {activityType.charAt(0).toUpperCase() + activityType.slice(1)}</Text>
               <Button colorScheme="red" w="full" onClick={handleStopTracking}>
                 Stop Tracking
@@ -305,6 +313,7 @@ export function ActivityTracker() {
                 <Text fontWeight="medium">Type: {activityType.charAt(0).toUpperCase() + activityType.slice(1)}</Text>
                 <Text>Duration: {formatTime(timer)}</Text>
                 <Text>Distance: {liveDistance.toFixed(2)} km</Text>
+                <Text>Pace: {calculatePaceFromSeconds(liveDistance, timer, activityType)}</Text>
                 {/* Static map preview */}
                 {_path.length > 1 && (
                   <Box>

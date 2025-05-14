@@ -2,6 +2,7 @@ import { Box, Text, Flex, Badge, Avatar, Stack, useColorModeValue, Button } from
 import { useState } from "react";
 import { TippingModal } from "./TippingModal";
 import { truncateAddress } from '../lib/farcaster';
+import { calculatePace } from '../lib/pace';
 
 // Helper to generate Mapbox Static Images URL from route array
 function getMapboxStaticUrl(route: { lat: number; lng: number }[], aspect: 'square' | 'wide' = 'square', hideStartEnd?: boolean) {
@@ -67,6 +68,7 @@ export interface ActivityCardProps {
     show_map?: boolean;
     hide_start_end?: boolean;
     location?: string;
+    pace?: string;
   };
   user?: {
     avatarUrl?: string;
@@ -143,6 +145,9 @@ export function ActivityCard({ activity, user, showTipping = true, aspect = 'squ
           </Text>
           <Text fontSize="sm" color={mutedColor}>
             {formatTime(activity.duration)}
+          </Text>
+          <Text fontSize="sm" color={mutedColor}>
+            {activity.pace || calculatePace(activity.distance, activity.duration, activity.type)}
           </Text>
         </Flex>
         {activity.description && (

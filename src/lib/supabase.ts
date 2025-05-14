@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { calculatePace } from './pace';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -26,12 +27,20 @@ export interface Activity {
   show_map?: boolean;
   hide_start_end?: boolean;
   location?: string;  // City name or location identifier
+  pace?: string;  // Calculated pace for the activity
 }
 
 export async function createActivity(activity: Omit<Activity, 'id' | 'created_at'>) {
+  // Calculate pace before storing (duration is in minutes)
+  const pace = calculatePace(activity.distance, activity.duration, activity.type);
+  
   const { data, error } = await supabase
     .from('activities')
-    .insert([{ ...activity, show_map: activity.show_map !== false }])
+    .insert([{ 
+      ...activity, 
+      pace,
+      show_map: activity.show_map !== false 
+    }])
     .select()
     .single();
 
