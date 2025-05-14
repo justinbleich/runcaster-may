@@ -7,11 +7,9 @@ import {
   Flex, 
   Text, 
   Avatar, 
-  Tooltip, 
-  Icon 
+  Tooltip
 } from '@chakra-ui/react';
 import { InfoIcon } from '@chakra-ui/icons';
-import { sdk } from '@farcaster/frame-sdk';
 
 interface UserTagInputProps {
   value: string;
