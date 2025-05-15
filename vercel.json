@@ -1,7 +1,8 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
+  "buildCommand": "npm install && tsc && vite build",
+  "installCommand": "npm install",
   "framework": "vite",
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/.well-known/farcaster.json",
