@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS challenge_participants (
   current_progress NUMERIC NOT NULL DEFAULT 0,
   has_paid BOOLEAN NOT NULL DEFAULT false,
   transaction_hash TEXT, -- Transaction hash of payment
-  joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_by UUID REFERENCES auth.users(id)
 );
 
 -- Create index on challenge_id and fid for faster lookups

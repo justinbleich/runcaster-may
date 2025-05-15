@@ -24,6 +24,7 @@ export interface ChallengeParticipant {
   current_progress: number;
   has_paid: boolean;
   transaction_hash?: string;
+  created_by?: string;
 }
 
 /**
@@ -106,7 +107,8 @@ export async function joinChallenge(
   challengeId: string,
   fid: number,
   userAddress: string,
-  transactionHash?: string
+  transactionHash?: string,
+  userId?: string
 ) {
   const participant: Omit<ChallengeParticipant, 'id' | 'joined_at'> = {
     challenge_id: challengeId,
@@ -114,7 +116,8 @@ export async function joinChallenge(
     user_address: userAddress,
     current_progress: 0,
     has_paid: !!transactionHash,
-    transaction_hash: transactionHash
+    transaction_hash: transactionHash,
+    created_by: userId
   };
 
   const { data, error } = await supabase
