@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   Box, 
   Text, 
@@ -7,8 +6,6 @@ import {
   Badge, 
   useColorModeValue, 
   Button,
-  Avatar,
-  AvatarGroup,
   Tag,
   TagLeftIcon,
   TagLabel
