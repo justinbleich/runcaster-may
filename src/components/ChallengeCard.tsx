@@ -12,6 +12,7 @@ import {
   Tooltip
 } from '@chakra-ui/react';
 import { FaUsers, FaCalendarAlt, FaTrophy, FaCoins } from 'react-icons/fa';
+import { TransactionButton } from './TransactionButton';
 
 interface ChallengeCardProps {
   id: string;
@@ -122,7 +123,7 @@ export function ChallengeCard({
             </Button>
           ) : (
             <Tooltip label="Pay 1 USDC to join this challenge">
-              <Button.Transaction
+              <TransactionButton
                 size="sm"
                 colorScheme={colorScheme}
                 variant="solid"
@@ -130,7 +131,7 @@ export function ChallengeCard({
                 target={`/api/join-challenge?id=${id}`}
               >
                 Pay 1 USDC to Join
-              </Button.Transaction>
+              </TransactionButton>
             </Tooltip>
           )
         ) : (

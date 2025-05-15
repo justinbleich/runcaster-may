@@ -10,7 +10,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     // Parse request from Farcaster Frame
     const body: FrameRequest = await req.json();
-    const { isValid, message } = await getFrameMessage(body, {
+    const { isValid } = await getFrameMessage(body, {
       neynarApiKey: 'NEYNAR_ONCHAIN_KIT', // Replace with your Neynar API key
     });
 
@@ -71,6 +71,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 }
 
-export async function GET(req: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   return NextResponse.json({ message: 'Use POST for frame transactions' });
 } 
