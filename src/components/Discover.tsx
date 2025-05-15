@@ -1,9 +1,13 @@
 import { useState, useMemo, useEffect } from "react";
-import { Stack, Box, Text, Avatar, HStack, Badge } from "@chakra-ui/react";
+import { Stack, Box, Text, Avatar, HStack, Badge, Divider } from "@chakra-ui/react";
 import { Button } from "./ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { getActivities } from "../lib/supabase";
 import { sdk } from "@farcaster/frame-sdk";
+import { StatsOverview } from "./StatsOverview";
+import { LeaderboardSection } from "./LeaderboardSection";
+import { ChallengesSection } from "./ChallengesSection";
+import { NewUsersSection } from "./NewUsersSection";
 
 // Fetch followers from Neynar
 async function fetchFollowers(fid: number) {
@@ -168,7 +172,10 @@ export function Discover() {
     }
   }, []);
   // Get all activities and unique FIDs
-  const { data: activities = [] } = useQuery({ queryKey: ['all-activities'], queryFn: getActivities });
+  const { data: activities = [], isLoading } = useQuery({ 
+    queryKey: ['all-activities'], 
+    queryFn: getActivities 
+  });
   const uniqueFids = useMemo(() => Array.from(new Set((activities as any[]).map((a: any) => a.fid))), [activities]);
   // Batch fetch all profiles
   const { data: profileMap = {} } = useQuery({
@@ -176,8 +183,32 @@ export function Discover() {
     queryFn: () => fetchProfilesByFids(uniqueFids),
     enabled: uniqueFids.length > 0
   }) as { data: Record<number, any> };
+  
   return (
     <Stack spacing={8} p={4}>
+      {/* Community Statistics Overview */}
+      <StatsOverview activities={activities as any[]} isLoading={isLoading} />
+      
+      {/* Top users leaderboard */}
+      <LeaderboardSection 
+        isLoading={isLoading} 
+        profileMap={profileMap} 
+        activities={activities as any[]} 
+      />
+      
+      {/* Weekly Challenges */}
+      <ChallengesSection userFid={fid || undefined} />
+      
+      {/* New Users */}
+      <NewUsersSection 
+        isLoading={isLoading} 
+        profileMap={profileMap} 
+        activities={activities as any[]} 
+      />
+      
+      <Divider my={4} />
+      
+      {/* Original sections */}
       {fid && <FollowersUsingRuncasterSection fid={fid} />}
       <LocationFacetedActivitiesSection profileMap={profileMap} />
       <HiddenGemsSection profileMap={profileMap} />
