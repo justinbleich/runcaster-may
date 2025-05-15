@@ -8,11 +8,13 @@ import {
   Button,
   Tag,
   TagLeftIcon,
-  TagLabel
+  TagLabel,
+  Tooltip
 } from '@chakra-ui/react';
-import { FaUsers, FaCalendarAlt, FaTrophy } from 'react-icons/fa';
+import { FaUsers, FaCalendarAlt, FaTrophy, FaCoins } from 'react-icons/fa';
 
 interface ChallengeCardProps {
+  id: string;
   title: string;
   description: string;
   progress: number;
@@ -20,10 +22,13 @@ interface ChallengeCardProps {
   endDate?: string;
   activityType?: 'run' | 'bike' | 'walk';
   isJoined?: boolean;
+  hasPaid?: boolean;
+  entryFee?: number;
   onJoin?: () => void;
 }
 
 export function ChallengeCard({ 
+  id,
   title, 
   description, 
   progress, 
@@ -31,6 +36,8 @@ export function ChallengeCard({
   endDate = "This week", 
   activityType,
   isJoined = false,
+  hasPaid = false,
+  entryFee = 0,
   onJoin = () => {}
 }: ChallengeCardProps) {
   const bgColor = useColorModeValue('white', 'gray.800');
@@ -95,16 +102,48 @@ export function ChallengeCard({
           </Tag>
         </Flex>
         
-        <Button 
-          size="sm" 
-          colorScheme={isJoined ? "gray" : colorScheme}
-          variant={isJoined ? "outline" : "solid"}
-          leftIcon={isJoined ? undefined : <FaTrophy />}
-          onClick={onJoin}
-          mt={2}
-        >
-          {isJoined ? "Joined" : "Join Challenge"}
-        </Button>
+        {entryFee > 0 && (
+          <Tag size="sm" variant="subtle" colorScheme="yellow" mb={2}>
+            <TagLeftIcon as={FaCoins} />
+            <TagLabel>{entryFee} USDC Entry Fee</TagLabel>
+          </Tag>
+        )}
+        
+        {isJoined ? (
+          hasPaid ? (
+            <Button 
+              size="sm" 
+              colorScheme="gray"
+              variant="outline"
+              leftIcon={<FaTrophy />}
+              isDisabled
+            >
+              Participating
+            </Button>
+          ) : (
+            <Tooltip label="Pay 1 USDC to join this challenge">
+              <Button.Transaction
+                size="sm"
+                colorScheme={colorScheme}
+                variant="solid"
+                leftIcon={<FaCoins />}
+                target={`/api/join-challenge?id=${id}`}
+              >
+                Pay 1 USDC to Join
+              </Button.Transaction>
+            </Tooltip>
+          )
+        ) : (
+          <Button 
+            size="sm" 
+            colorScheme={colorScheme}
+            variant="solid"
+            leftIcon={<FaTrophy />}
+            onClick={onJoin}
+          >
+            Join Challenge
+          </Button>
+        )}
       </Flex>
     </Box>
   );
