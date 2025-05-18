@@ -18,9 +18,7 @@ import {
   Flex,
   Text,
   useColorModeValue,
-  Stack,
 } from "@chakra-ui/react";
-import { truncateAddress } from "./lib/farcaster";
 
 // Create Wagmi config with the Farcaster Mini App connector
 const config = createConfig({
@@ -112,7 +110,6 @@ function App() {
 }
 
 function ConnectMenu() {
-  const { isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const cardBg = useColorModeValue("gray.100", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
