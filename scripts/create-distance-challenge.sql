@@ -1,4 +1,4 @@
--- Create a distance-based challenge with reward distribution
+-- Create a distance-based challenge with reward distribution that tracks total distance
 INSERT INTO public.challenges (
   id,
   title, 
@@ -15,13 +15,13 @@ INSERT INTO public.challenges (
 )
 VALUES (
   gen_random_uuid(),
-  'Longest Run Challenge', 
-  'Complete the longest single run you can! Top performers will be ranked and rewarded: 1st place: 50% of pool, 2nd place: 30%, 3rd place: 15%, 4th-10th place: share 5%',
+  'Weekly Distance Challenge', 
+  'Run as much as you can over the course of the week! Top performers by total distance will be rewarded: 1st place: 50% of pool, 2nd place: 30%, 3rd place: 15%, 4th-10th place: share 5%',
   'run', 
-  0, -- No minimum target, just rank by max distance
+  0, -- No minimum target, just rank by total distance
   'km', 
   CURRENT_TIMESTAMP,
-  CURRENT_TIMESTAMP + INTERVAL '14 days', -- Two week challenge
+  CURRENT_TIMESTAMP + INTERVAL '7 days', -- One week challenge
   0, -- Free entry for now, could add entry fee to create prize pool
   true,
   CURRENT_TIMESTAMP,
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS challenge_rankings (
   fid integer NOT NULL,
   user_address text NOT NULL,
   rank integer NOT NULL,
-  achievement_value float NOT NULL, -- The actual distance/value achieved
+  achievement_value float NOT NULL, -- The total distance achieved
   reward_percentage float NOT NULL, -- Percentage of pool awarded
   reward_amount float, -- Actual reward amount (may be calculated later)
   paid boolean DEFAULT false,

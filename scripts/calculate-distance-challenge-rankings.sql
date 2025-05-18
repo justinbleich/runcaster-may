@@ -1,4 +1,4 @@
--- Script to calculate rankings for the distance-based challenge
+-- Script to calculate rankings for the total distance challenge
 -- Replace 'challenge-id-here' with the actual challenge ID when running
 
 DO $$
@@ -10,13 +10,13 @@ DECLARE
     v_third_place_pct float := 0.15; -- 15% to third place
     v_remaining_pct float := 0.05; -- 5% split among 4th-10th place
 BEGIN
-    -- First, find the longest run distance for each participant during the challenge period
-    WITH longest_runs AS (
+    -- First, sum the total distance for each participant during the challenge period
+    WITH total_distances AS (
         SELECT 
             a.fid,
             a.user_address,
-            -- Get the longest single run for each user
-            MAX(a.distance) as max_distance
+            -- Sum all run distances for each user during the challenge period
+            SUM(a.distance) as total_distance
         FROM 
             activities a
             JOIN challenges c ON a.created_at BETWEEN c.start_date AND c.end_date
@@ -26,15 +26,15 @@ BEGIN
         GROUP BY 
             a.fid, a.user_address
     ),
-    -- Rank the participants by their longest run
+    -- Rank the participants by their total distance
     ranked_participants AS (
         SELECT 
             fid,
             user_address,
-            max_distance,
-            RANK() OVER (ORDER BY max_distance DESC) as rank
+            total_distance,
+            RANK() OVER (ORDER BY total_distance DESC) as rank
         FROM 
-            longest_runs
+            total_distances
     )
     
     -- Insert or update the challenge_rankings table
@@ -43,7 +43,7 @@ BEGIN
     WHEN MATCHED THEN
         UPDATE SET 
             rank = rp.rank,
-            achievement_value = rp.max_distance,
+            achievement_value = rp.total_distance,
             reward_percentage = 
                 CASE
                     WHEN rp.rank = 1 THEN v_first_place_pct
@@ -68,7 +68,7 @@ BEGIN
             rp.fid,
             rp.user_address,
             rp.rank,
-            rp.max_distance,
+            rp.total_distance,
             CASE
                 WHEN rp.rank = 1 THEN v_first_place_pct
                 WHEN rp.rank = 2 THEN v_second_place_pct
@@ -92,7 +92,7 @@ SELECT
     cr.rank,
     p.username, 
     p.display_name,
-    cr.achievement_value as "Longest Run (km)",
+    cr.achievement_value as "Total Distance (km)",
     (cr.reward_percentage * 100) as "Reward Percentage",
     cr.reward_amount as "Reward Amount"
 FROM 
