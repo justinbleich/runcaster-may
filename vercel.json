@@ -7,6 +7,10 @@
     {
       "source": "/.well-known/farcaster.json",
       "destination": "/.well-known/farcaster.json"
+    },
+    {
+      "source": "/admin",
+      "destination": "/"
     }
   ],
   "headers": [

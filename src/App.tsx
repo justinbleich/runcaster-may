@@ -7,6 +7,7 @@ import { ActivityFeed } from "./components/ActivityFeed";
 import { ActivityTracker } from "./components/ActivityTracker";
 import { Profile } from "./components/Profile";
 import { Challenges } from "./components/Challenges";
+import { ChallengeAdmin } from "./components/admin/ChallengeAdmin";
 import {
   Box,
   Tabs,
@@ -42,6 +43,20 @@ function App() {
   const tabActiveBg = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const { isConnected } = useAccount();
+  
+  // Check if admin URL is specified
+  const isAdmin = window.location.pathname === "/admin";
+
+  // If admin route, show admin interface instead of regular app
+  if (isAdmin) {
+    return (
+      <WagmiConfig config={config}>
+        <Box maxW="100%" mx="auto" minH="100vh" bg="white" color="black">
+          <ChallengeAdmin />
+        </Box>
+      </WagmiConfig>
+    );
+  }
 
   return (
     <WagmiConfig config={config}>
