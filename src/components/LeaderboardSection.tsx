@@ -141,32 +141,34 @@ export function LeaderboardSection({ isLoading, profileMap, activities }: Leader
       boxShadow="sm"
       p={4}
     >
-      <Flex justify="space-between" align="center" mb={4}>
-        <Heading size="md">Leaderboard</Heading>
-        <ButtonGroup size="sm" isAttached variant="outline">
-          <Button 
-            onClick={() => setMetric('distance')}
-            colorScheme={metric === 'distance' ? 'orange' : 'gray'}
-            fontWeight={metric === 'distance' ? 'bold' : 'normal'}
-          >
-            Distance
-          </Button>
-          <Button 
-            onClick={() => setMetric('count')}
-            colorScheme={metric === 'count' ? 'orange' : 'gray'}
-            fontWeight={metric === 'count' ? 'bold' : 'normal'}
-          >
-            Count
-          </Button>
-          <Button 
-            onClick={() => setMetric('pace')}
-            colorScheme={metric === 'pace' ? 'orange' : 'gray'}
-            fontWeight={metric === 'pace' ? 'bold' : 'normal'}
-          >
-            Speed
-          </Button>
-        </ButtonGroup>
-      </Flex>
+      <Heading size="md" mb={4}>Leaderboard</Heading>
+      
+      <ButtonGroup size="sm" isAttached variant="outline" mb={4} width="100%">
+        <Button 
+          onClick={() => setMetric('distance')}
+          colorScheme={metric === 'distance' ? 'orange' : 'gray'}
+          fontWeight={metric === 'distance' ? 'bold' : 'normal'}
+          flex="1"
+        >
+          Distance
+        </Button>
+        <Button 
+          onClick={() => setMetric('count')}
+          colorScheme={metric === 'count' ? 'orange' : 'gray'}
+          fontWeight={metric === 'count' ? 'bold' : 'normal'}
+          flex="1"
+        >
+          Count
+        </Button>
+        <Button 
+          onClick={() => setMetric('pace')}
+          colorScheme={metric === 'pace' ? 'orange' : 'gray'}
+          fontWeight={metric === 'pace' ? 'bold' : 'normal'}
+          flex="1"
+        >
+          Speed
+        </Button>
+      </ButtonGroup>
       
       {isLoading ? (
         <Flex justify="center" p={8}>

@@ -43,12 +43,13 @@ function App() {
   const tabBg = useColorModeValue("gray.200", "gray.700");
   const tabActiveBg = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
+  const { isConnected } = useAccount();
 
   return (
     <WagmiConfig config={config}>
       <Box maxW="424px" mx="auto" minH="695px" bg="gray.900">
         <Box p={4}>
-          <ConnectMenu />
+          {!isConnected && <ConnectMenu />}
           <Tabs
             index={tabIndex}
             onChange={setTabIndex}
@@ -111,7 +112,7 @@ function App() {
 }
 
 function ConnectMenu() {
-  const { isConnected, address } = useAccount();
+  const { isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const cardBg = useColorModeValue("gray.100", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
@@ -119,17 +120,6 @@ function ConnectMenu() {
 
   // Check if we're in a Farcaster environment
   const isFarcasterEnv = window.location.hostname === 'localhost' ? false : true;
-
-  if (isConnected) {
-    return (
-      <Flex align="center" justify="space-between" p={4} bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor}>
-        <Stack direction="row" align="center" spacing={2}>
-          <Text fontSize="sm" fontWeight="medium">Connected:</Text>
-          <Text fontSize="sm" color={mutedColor}>{truncateAddress(address || "")}</Text>
-        </Stack>
-      </Flex>
-    );
-  }
 
   if (!isFarcasterEnv) {
     return (

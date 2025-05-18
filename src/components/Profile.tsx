@@ -1,7 +1,7 @@
 import {
   Box, Stack, Flex, Text, Heading, Avatar, useColorModeValue, Button, useToast, AlertDialog, AlertDialogBody, AlertDialogFooter, AlertDialogHeader, AlertDialogContent, AlertDialogOverlay, IconButton, Menu, MenuButton, MenuList, MenuItem
 } from "@chakra-ui/react";
-import { useAccount } from "wagmi";
+import { useAccount, useDisconnect } from "wagmi";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUserActivities, supabase } from "../lib/supabase";
 import { truncateAddress, FarcasterProfile } from "../lib/farcaster";
@@ -13,6 +13,7 @@ import { sdk } from "@farcaster/frame-sdk";
 
 export function Profile() {
   const { address } = useAccount();
+  const { disconnect } = useDisconnect();
   const cardBg = useColorModeValue("gray.100", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const mutedColor = useColorModeValue("gray.500", "gray.400");
@@ -186,6 +187,18 @@ export function Profile() {
           <Text fontSize="md" color={mutedColor}>@{typedUserProfile?.username}</Text>
         )}
         <Text fontSize="sm" color={mutedColor} mb={2}>FID: {typedUserProfile?.fid || "-"}</Text>
+
+        {/* Disconnect button */}
+        <Button 
+          size="sm" 
+          colorScheme="red" 
+          variant="outline" 
+          mt={3} 
+          onClick={() => disconnect()}
+        >
+          Disconnect Wallet
+        </Button>
+        
         {/* Weekly Summary */}
         <Box bg={cardBg} borderRadius="lg" borderWidth={1} borderColor={borderColor} p={4} mt={4}>
           <Text fontSize="xs" color={mutedColor} fontWeight="bold" mb={2}>
