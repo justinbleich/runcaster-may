@@ -6,7 +6,7 @@ import { farcasterFrame as miniAppConnector } from "@farcaster/frame-wagmi-conne
 import { ActivityFeed } from "./components/ActivityFeed";
 import { ActivityTracker } from "./components/ActivityTracker";
 import { Profile } from "./components/Profile";
-import { Discover } from "./components/Discover";
+import { Challenges } from "./components/Challenges";
 import {
   Box,
   Tabs,
@@ -68,6 +68,12 @@ function App() {
                 _selected={{ bg: tabActiveBg, color: "orange.500", fontWeight: "bold" }}
                 borderRadius="md"
               >
+                Challenges
+              </Tab>
+              <Tab
+                _selected={{ bg: tabActiveBg, color: "orange.500", fontWeight: "bold" }}
+                borderRadius="md"
+              >
                 Feed
               </Tab>
               <Tab
@@ -80,24 +86,18 @@ function App() {
                 _selected={{ bg: tabActiveBg, color: "orange.500", fontWeight: "bold" }}
                 borderRadius="md"
               >
-                Discover
-              </Tab>
-              <Tab
-                _selected={{ bg: tabActiveBg, color: "orange.500", fontWeight: "bold" }}
-                borderRadius="md"
-              >
                 Profile
               </Tab>
             </TabList>
             <TabPanels>
               <TabPanel px={0}>
+                <Challenges />
+              </TabPanel>
+              <TabPanel px={0}>
                 <ActivityFeed />
               </TabPanel>
               <TabPanel px={0}>
                 <ActivityTracker />
-              </TabPanel>
-              <TabPanel px={0}>
-                <Discover />
               </TabPanel>
               <TabPanel px={0}>
                 <Profile />
