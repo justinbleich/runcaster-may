@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect } from "react";
 import { Stack } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { getActivities } from "../lib/supabase";
-import { sdk } from "@farcaster/frame-sdk";
 import { LeaderboardSection } from "./LeaderboardSection";
 import { ChallengesSection } from "./ChallengesSection";
 
