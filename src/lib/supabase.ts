@@ -34,9 +34,22 @@ export async function createActivity(activity: Omit<Activity, 'id' | 'created_at
   // Calculate pace before storing (duration is in minutes)
   const pace = calculatePace(activity.distance, activity.duration, activity.type);
   
-  console.log('Creating activity with type:', activity.type);
+  console.log('Creating activity with data:', JSON.stringify({
+    type: activity.type,
+    distance: activity.distance,
+    duration: activity.duration,
+    is_public: activity.is_public
+  }));
   
   try {
+    // First check connection to Supabase
+    const { error: pingError } = await supabase.from('activities').select('id').limit(1);
+    if (pingError) {
+      console.error('Supabase connection error:', pingError);
+      throw new Error(`Connection error: ${pingError.message}`);
+    }
+    
+    // Then attempt to insert activity
     const { data, error } = await supabase
       .from('activities')
       .insert([{ 
@@ -48,13 +61,24 @@ export async function createActivity(activity: Omit<Activity, 'id' | 'created_at
       .single();
 
     if (error) {
-      console.error('Supabase error creating activity:', error);
+      console.error('Supabase error creating activity:', error, JSON.stringify(error, null, 2));
       throw error;
     }
+    
+    console.log('Activity created successfully:', data.id);
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Exception creating activity:', error);
-    throw error;
+    // Check for specific error types and provide clearer messages
+    if (error.message?.includes('network')) {
+      throw new Error('Network error connecting to database. Please check your internet connection.');
+    } else if (error.message?.includes('auth')) {
+      throw new Error('Authentication error. Please sign in again.');
+    } else if (error.message?.includes('constraint')) {
+      throw new Error('Database constraint error. Some required fields may be missing.');
+    } else {
+      throw error;
+    }
   }
 }
 

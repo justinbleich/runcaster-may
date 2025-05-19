@@ -1,5 +1,5 @@
 import { sdk } from "@farcaster/frame-sdk";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Component, ReactNode } from "react";
 import { createConfig, WagmiConfig, useAccount, useConnect, http } from "wagmi";
 import { base } from "wagmi/chains";
 import { farcasterFrame as miniAppConnector } from "@farcaster/frame-wagmi-connector";
@@ -19,6 +19,11 @@ import {
   Flex,
   Text,
   useColorModeValue,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Stack,
 } from "@chakra-ui/react";
 
 // Create Wagmi config with the Farcaster Mini App connector
@@ -31,6 +36,59 @@ const config = createConfig({
     miniAppConnector()
   ]
 });
+
+// Error Boundary Component
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  componentName: string;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error): void {
+    console.error(`Error in ${this.props.componentName}:`, error);
+  }
+
+  render(): ReactNode {
+    if (this.state.hasError) {
+      return (
+        <Alert status="error" variant="solid" flexDirection="column" alignItems="center" justifyContent="center" textAlign="center" borderRadius="lg" py={4}>
+          <AlertIcon boxSize="40px" mr={0} />
+          <AlertTitle mt={4} mb={1} fontSize="lg">
+            Component Error
+          </AlertTitle>
+          <AlertDescription maxWidth="sm">
+            The {this.props.componentName} component encountered an error.
+            <Text mt={2} fontSize="sm">{this.state.error?.message}</Text>
+            <Button 
+              onClick={() => this.setState({ hasError: false, error: null })}
+              colorScheme="red"
+              size="sm" 
+              mt={4}
+            >
+              Try Again
+            </Button>
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 function App() {
   useEffect(() => {
@@ -52,7 +110,9 @@ function App() {
     return (
       <WagmiConfig config={config}>
         <Box maxW="100%" mx="auto" minH="100vh" bg="white" color="black">
-          <ChallengeAdmin />
+          <ErrorBoundary componentName="ChallengeAdmin">
+            <ChallengeAdmin />
+          </ErrorBoundary>
         </Box>
       </WagmiConfig>
     );
@@ -105,16 +165,24 @@ function App() {
             </TabList>
             <TabPanels>
               <TabPanel px={0}>
-                <Challenges />
+                <ErrorBoundary componentName="Challenges">
+                  <Challenges />
+                </ErrorBoundary>
               </TabPanel>
               <TabPanel px={0}>
-                <ActivityFeed />
+                <ErrorBoundary componentName="ActivityFeed">
+                  <ActivityFeed />
+                </ErrorBoundary>
               </TabPanel>
               <TabPanel px={0}>
-                <ActivityTracker />
+                <ErrorBoundary componentName="ActivityTracker">
+                  <ActivityTracker />
+                </ErrorBoundary>
               </TabPanel>
               <TabPanel px={0}>
-                <Profile />
+                <ErrorBoundary componentName="Profile">
+                  <Profile />
+                </ErrorBoundary>
               </TabPanel>
             </TabPanels>
           </Tabs>

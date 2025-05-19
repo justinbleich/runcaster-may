@@ -1,13 +1,47 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import React from "react";
+import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import { WagmiProvider } from "wagmi";
 import { config } from "./wagmi";
 import App from "./App";
 import "./index.css";
-import { ChakraProvider, extendTheme, ColorModeScript } from "@chakra-ui/react";
+import { ChakraProvider, extendTheme, ColorModeScript, useToast } from "@chakra-ui/react";
+import { supabase } from "./lib/supabase";
 
 const queryClient = new QueryClient();
+
+// Add Supabase connection check component
+function SupabaseConnectionChecker() {
+  const toast = useToast();
+  
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        // Simple ping to check connection
+        const { error } = await supabase.from('activities').select('id').limit(1);
+        
+        if (error) {
+          console.error('Supabase connection error:', error);
+          toast({
+            title: 'Database connection error',
+            description: 'Could not connect to Supabase. Some features may not work correctly.',
+            status: 'error',
+            duration: 10000,
+            isClosable: true,
+          });
+        } else {
+          console.log('Successfully connected to Supabase');
+        }
+      } catch (err) {
+        console.error('Failed to check Supabase connection:', err);
+      }
+    };
+    
+    checkConnection();
+  }, [toast]);
+  
+  return null;
+}
 
 const theme = extendTheme({
   config: {
@@ -57,6 +91,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <ColorModeScript initialColorMode={theme.config.initialColorMode} />
       <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
+          <SupabaseConnectionChecker />
           <App />
         </QueryClientProvider>
       </WagmiProvider>

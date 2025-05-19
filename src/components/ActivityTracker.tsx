@@ -189,13 +189,34 @@ export function ActivityTracker() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!address || !fid) {
-      setErrorMsg("Missing required information");
+      setErrorMsg("Missing required information: user is not connected");
       return;
     }
+    
+    // Basic validation
+    if (!activity.title) {
+      setErrorMsg("Please provide an activity name");
+      return;
+    }
+    
+    if (activity.distance <= 0) {
+      setErrorMsg("Activity must have a valid distance greater than 0");
+      return;
+    }
+    
     try {
       setIsSubmitting(true);
       setErrorMsg(null);
-      await createActivity({
+      
+      console.log("Submitting activity:", {
+        type: activity.type,
+        fid,
+        address,
+        distance: activity.distance,
+        duration: activity.duration
+      });
+      
+      const result = await createActivity({
         fid,
         user_address: address,
         type: activity.type,
@@ -210,6 +231,9 @@ export function ActivityTracker() {
         show_map: activity.show_map !== false,
         hide_start_end: activity.hide_start_end === true,
       });
+      
+      console.log("Activity saved successfully:", result?.id);
+      
       // Reset form
       setActivity({
         type: "run",
@@ -232,8 +256,16 @@ export function ActivityTracker() {
       queryClient.invalidateQueries({ queryKey: ["activities"] });
       queryClient.invalidateQueries({ queryKey: ["user-activities"] });
     } catch (error: any) {
-      setErrorMsg(error.message || "Failed to save activity");
+      const errorMessage = error.message || "Failed to save activity";
+      setErrorMsg(errorMessage);
       console.error("Error creating activity:", error);
+      
+      // If we received a specific error from Supabase
+      if (error.code) {
+        console.error("Supabase error code:", error.code, error.details);
+      }
+      
+      // Don't reset form on error so user can try again
     } finally {
       setIsSubmitting(false);
     }
