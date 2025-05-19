@@ -22,8 +22,8 @@ import {
   useDisclosure,
   Select,
 } from "@chakra-ui/react";
-import { useState, useRef, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
 
 // Types
@@ -60,6 +60,14 @@ interface SupabaseError {
   details?: string;
   hint?: string;
   code?: string;
+}
+
+// Challenge ranking response
+interface RankingResult {
+  success: boolean;
+  message: string;
+  challenge_id: string;
+  timestamp: string;
 }
 
 export function ChallengeAdmin() {
@@ -103,7 +111,7 @@ export function ChallengeAdmin() {
   const createChallenge = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.rpc("create_new_challenge", {
+      const { error } = await supabase.rpc("create_new_challenge", {
         input_challenge_type: selectedChallengeType
       });
 
@@ -149,16 +157,18 @@ export function ChallengeAdmin() {
       if (updateError) throw updateError;
 
       // Calculate rankings
-      const { error: rankError } = await supabase
+      const { data: rankingData, error: rankError } = await supabase
         .rpc("calculate_challenge_rankings", { 
           challenge_id: selectedChallenge 
         });
 
       if (rankError) throw rankError;
 
+      const result = rankingData as RankingResult;
+      
       toast({
         title: "Challenge closed",
-        description: "Challenge has been closed and rankings calculated.",
+        description: result.message || "Challenge has been closed and rankings calculated.",
         status: "success",
         duration: 3000,
         isClosable: true,

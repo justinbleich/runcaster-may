@@ -23,7 +23,6 @@ import {
   AlertIcon,
   AlertTitle,
   AlertDescription,
-  Stack,
 } from "@chakra-ui/react";
 
 // Create Wagmi config with the Farcaster Mini App connector
